@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: trpg_ai_scenario_generator_development
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: bash -c "rm -f tmp/pids/server.pid && bin/dev"
+    tty: true
+    stdin_open: true
+    volumes:
+      - .:/app
+      - bundle_data:/usr/local/bundle
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    environment:
+      DATABASE_HOST: db
+      DATABASE_USERNAME: postgres
+      DATABASE_PASSWORD: password
+      DATABASE_NAME: trpg_ai_scenario_generator_development
+
+volumes:
+  postgres_data:
+  bundle_data:
