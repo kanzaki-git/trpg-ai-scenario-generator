@@ -16,6 +16,8 @@ RUN apt-get update -qq && apt-get install -y \
   git \
   vim
 
+RUN npm install -g yarn
+
 WORKDIR /app
 
 COPY Gemfile Gemfile.lock ./
