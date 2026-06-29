@@ -10,8 +10,20 @@
       TRPGシナリオをAIが自動生成します。
     </p>
 
-    <%= link_to "シナリオを作成する", "#", class: "btn btn-primary btn-lg px-5 py-3" %>
+    <div class="mt-5 text-center">
+      <% if logged_in? %>
+        <%= link_to "シナリオを作成する", "#", class: "btn btn-primary btn-lg px-5 py-3" %>
+      <% else %>
+        <p class="text-muted mb-3">
+          シナリオ作成にはログインが必要です。
+        </p>
 
+        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+          <%= link_to "ログインしてシナリオを作成する", login_path, class: "btn btn-primary btn-lg px-5 py-3" %>
+          <%= link_to "新規登録はこちら", new_user_path, class: "btn btn-outline-primary btn-lg px-5 py-3" %>
+        </div>
+      <% end %>
+    </div>
   </div>
 
   <section class="bg-light py-5">
