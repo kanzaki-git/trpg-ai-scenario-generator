@@ -1,0 +1,29 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  scenario: one
+  title: MyString
+  purpose: MyText
+  estimated_time: 1
+  read_aloud_text: MyText
+  gm_actions: MyText
+  player_questions: MyText
+  investigation_options: MyText
+  trigger_condition: MyText
+  transition_condition: MyText
+  hint: MyText
+  position: 1
+
+two:
+  scenario: two
+  title: MyString
+  purpose: MyText
+  estimated_time: 1
+  read_aloud_text: MyText
+  gm_actions: MyText
+  player_questions: MyText
+  investigation_options: MyText
+  trigger_condition: MyText
+  transition_condition: MyText
+  hint: MyText
+  position: 1
