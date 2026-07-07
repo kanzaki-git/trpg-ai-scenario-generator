@@ -12,7 +12,7 @@
 
     <div class="mt-5 text-center">
       <% if logged_in? %>
-        <%= link_to "シナリオを作成する", "#", class: "btn btn-primary btn-lg px-5 py-3" %>
+        <%= link_to "シナリオを作成する", new_scenario_path, class: "btn btn-primary btn-lg px-5 py-3" %>
       <% else %>
         <p class="text-muted mb-3">
           シナリオ作成にはログインが必要です。
