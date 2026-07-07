@@ -1,0 +1,94 @@
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card shadow-sm">
+        <div class="card-body p-4 p-md-5">
+          <h1 class="text-center mb-4">シナリオ生成</h1>
+
+          <p class="text-center text-muted mb-4">
+            条件を選択すると、AIがTRPGシナリオを生成します。
+          </p>
+
+          <%= form_with model: @scenario, local: true do |form| %>
+            <% if @scenario.errors.any? %>
+              <div class="alert alert-danger mb-4">
+                <p class="fw-bold mb-2">
+                  入力内容を確認してください
+                </p>
+
+                <ul class="mb-0">
+                  <% @scenario.errors.full_messages.each do |message| %>
+                    <li><%= message %></li>
+                  <% end %>
+                </ul>
+              </div>
+            <% end %>
+
+            <div class="mb-4">
+              <%= form.label :genre, "ジャンル", class: "form-label fw-bold" %>
+              <%= form.select :genre,
+                              [
+                                ["ホラー", "ホラー"],
+                                ["ミステリー", "ミステリー"],
+                                ["ファンタジー", "ファンタジー"],
+                                ["SF", "SF"],
+                                ["コメディ", "コメディ"]
+                              ],
+                              { prompt: "ジャンルを選択してください" },
+                              class: "form-select" %>
+            </div>
+
+            <div class="mb-4">
+              <%= form.label :world_setting, "世界観", class: "form-label fw-bold" %>
+              <%= form.text_area :world_setting,
+                                 rows: 4,
+                                 class: "form-control",
+                                 placeholder: "例：現代日本の山奥にある、閉鎖された古い村" %>
+            </div>
+
+            <div class="mb-4">
+              <%= form.label :tone, "雰囲気", class: "form-label fw-bold" %>
+              <%= form.select :tone,
+                              [
+                                ["シリアス", "シリアス"],
+                                ["ダーク", "ダーク"],
+                                ["コミカル", "コミカル"],
+                                ["感動的", "感動的"],
+                                ["不気味", "不気味"]
+                              ],
+                              { prompt: "雰囲気を選択してください" },
+                              class: "form-select" %>
+            </div>
+
+            <div class="mb-4">
+              <%= form.label :player_count, "プレイ人数", class: "form-label fw-bold" %>
+              <%= form.select :player_count,
+                              (1..6).map { |count| ["#{count}人", count] },
+                              { prompt: "プレイ人数を選択してください" },
+                              class: "form-select" %>
+            </div>
+
+            <div class="mb-4">
+              <%= form.label :play_time, "プレイ時間", class: "form-label fw-bold" %>
+              <%= form.select :play_time,
+                              [
+                                ["30分", 30],
+                                ["1時間", 60],
+                                ["1時間30分", 90],
+                                ["2時間", 120],
+                                ["3時間", 180]
+                              ],
+                              { prompt: "プレイ時間を選択してください" },
+                              class: "form-select" %>
+            </div>
+
+            <div class="d-grid">
+              <%= form.submit "シナリオを生成する",
+                              class: "btn btn-primary btn-lg" %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
