@@ -65,3 +65,7 @@ group :test do
   gem "capybara"
   gem "selenium-webdriver"
 end
+
+gem "openai", "~> 0.68.0"
+
+gem "dotenv-rails", "~> 3.2", groups: [:development, :test]
