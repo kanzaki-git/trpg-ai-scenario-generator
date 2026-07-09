@@ -16,6 +16,11 @@ class ScenarioGenerationSchema < OpenAI::BaseModel
     required :position, Integer
   end
 
+  class SceneNpc < OpenAI::BaseModel
+    required :npc_position, Integer
+    required :reaction, String
+  end
+
   class Scene < OpenAI::BaseModel
     required :title, String
     required :purpose, String
@@ -27,7 +32,7 @@ class ScenarioGenerationSchema < OpenAI::BaseModel
     required :trigger_condition, String
     required :transition_condition, String
     required :hint, String
-    required :npc_positions, OpenAI::ArrayOf[Integer]
+    required :npc_appearances, OpenAI::ArrayOf[SceneNpc]
     required :clue_positions, OpenAI::ArrayOf[Integer]
     required :event_positions, OpenAI::ArrayOf[Integer]
     required :position, Integer

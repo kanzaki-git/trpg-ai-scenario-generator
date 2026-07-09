@@ -73,7 +73,9 @@ class ScenarioGenerator
 
       【シーンと各要素の関連付け】
 
-      ・npc_positionsには、そのシーンに登場する登場人物のpositionを入れてください
+      ・npc_appearancesには、そのシーンに登場する登場人物の情報を入れてください
+      ・npc_positionには、登場人物のpositionを入れてください
+      ・reactionには、そのシーンにおける登場人物の反応や行動を入れてください
       ・clue_positionsには、そのシーンで入手できる手がかりのpositionを入れてください
       ・event_positionsには、そのシーンで発生するイベントのpositionを入れてください
       ・参照するpositionは、実際に生成した要素のpositionだけを使用してください
