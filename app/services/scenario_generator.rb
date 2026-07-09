@@ -8,10 +8,11 @@ class ScenarioGenerator
   def call
     response = client.responses.create(
       model: MODEL,
-      input: prompt
+      input: prompt,
+      text: ScenarioGenerationSchema
     )
 
-    extract_text(response)
+    extract_result(response)
   end
 
   private
@@ -36,17 +37,24 @@ class ScenarioGenerator
       プレイ人数：#{scenario.player_count}人
       プレイ時間：#{scenario.play_time}分
 
-      今回は接続確認のため、次の2項目だけを日本語で返してください。
+      プレイ時間は、現実のセッションにかかる時間です。
+      物語内の制限時間として扱わないでください。
+
+      今回は接続確認のため、次の2項目を日本語で生成してください。
 
       ・タイトル
       ・シナリオ概要
     PROMPT
   end
 
-  def extract_text(response)
-    response.output
-      .flat_map { |item| item.type == :message ? item.content : [] }
-      .filter_map { |content| content.type == :output_text ? content.text : nil }
-      .join
+  def extract_result(response)
+    result = response.output
+      .flat_map { |item| item.respond_to?(:content) ? item.content : [] }
+      .filter_map { |content| content.respond_to?(:parsed) ? content.parsed : nil }
+      .first
+
+    return result if result
+
+    raise "OpenAI APIから構造化された結果を取得できませんでした"
   end
 end
