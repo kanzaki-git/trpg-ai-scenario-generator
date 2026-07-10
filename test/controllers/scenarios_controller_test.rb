@@ -1,4 +1,6 @@
 require "test_helper"
+require "minitest/mock"
+require "ostruct"
 
 class ScenariosControllerTest < ActionDispatch::IntegrationTest
   setup do
@@ -22,17 +24,27 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "ログイン中のユーザーはシナリオを作成できる" do
-    assert_difference("Scenario.count", 1) do
-      post scenarios_url, params: {
-        scenario: {
-          genre: "ホラー",
-          world_setting: "現代日本",
-          tone: "ダーク",
-          player_count: 2,
-          play_time: 30
+    fake_generator = Minitest::Mock.new
+    fake_generator.expect(:call, fake_generation_result)
+
+    ScenarioGenerator.stub(
+      :new,
+      ->(scenario:) { fake_generator }
+    ) do
+      assert_difference("Scenario.count", 1) do
+        post scenarios_url, params: {
+          scenario: {
+            genre: "ホラー",
+            world_setting: "現代日本",
+            tone: "ダーク",
+            player_count: 2,
+            play_time: 30
+          }
         }
-      }
+      end
     end
+
+    fake_generator.verify
 
     assert_redirected_to root_path
   end
@@ -51,5 +63,21 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_response :unprocessable_entity
+  end
+
+  private
+
+  def fake_generation_result
+    OpenStruct.new(
+      title: "テストシナリオ",
+      summary: "テスト用の概要です。",
+      introduction: "テスト用の導入です。",
+      truth: "テスト用の真相です。",
+      npcs: [],
+      clues: [],
+      events: [],
+      scenes: [],
+      endings: []
+    )
   end
 end

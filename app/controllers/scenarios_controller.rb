@@ -6,8 +6,17 @@ class ScenariosController < ApplicationController
   def create
     @scenario = current_user.scenarios.build(scenario_params)
 
-    if @scenario.save
-      redirect_to root_path, notice: "シナリオの条件を保存しました"
+    if @scenario.valid?
+      generation_result = ScenarioGenerator.new(
+        scenario: @scenario
+      ).call
+
+      ScenarioGenerationSaver.new(
+        scenario: @scenario,
+        generation_result: generation_result
+      ).call
+
+      redirect_to root_path, notice: "シナリオを生成しました"
     else
       render :new, status: :unprocessable_entity
     end
