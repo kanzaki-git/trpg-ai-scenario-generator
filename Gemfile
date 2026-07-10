@@ -63,5 +63,10 @@ end
 group :test do
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara"
+  gem "minitest-mock", "~> 5.27"
   gem "selenium-webdriver"
 end
+
+gem "openai", "~> 0.68.0"
+
+gem "dotenv-rails", "~> 3.2", groups: [ :development, :test ]
