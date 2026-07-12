@@ -2,7 +2,13 @@ Rails.application.routes.draw do
   root "homes#top"
 
   resources :users, only: %i[new create]
-  resources :scenarios, only: %i[new create]
+  resources :scenarios, only: %i[new create show] do
+    member do
+      get :materials
+      get :scenes
+      get :conclusion
+    end
+  end
 
   get "login", to: "user_sessions#new"
   post "login", to: "user_sessions#create"

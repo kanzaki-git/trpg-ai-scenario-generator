@@ -46,7 +46,9 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
 
     fake_generator.verify
 
-    assert_redirected_to root_path
+    created_scenario = Scenario.find_by!(title: "テストシナリオ")
+
+    assert_redirected_to scenario_path(created_scenario)
   end
 
   test "未入力の場合はシナリオを作成できない" do
@@ -65,7 +67,57 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_entity
   end
 
+  test "ログイン中のユーザーはシナリオ概要を表示できる" do
+    scenario = create_scenario
+
+    get scenario_url(scenario)
+
+    assert_response :success
+    assert_select "h1", text: scenario.title
+  end
+
+  test "ログイン中のユーザーはセッション準備資料を表示できる" do
+    scenario = create_scenario
+
+    get materials_scenario_url(scenario)
+
+    assert_response :success
+    assert_select "h1", text: "セッション準備資料"
+  end
+
+  test "ログイン中のユーザーはシーン進行を表示できる" do
+    scenario = create_scenario
+
+    get scenes_scenario_url(scenario)
+
+    assert_response :success
+    assert_select "h1", text: "シーン進行"
+  end
+
+  test "ログイン中のユーザーは真相とエンディングを表示できる" do
+    scenario = create_scenario
+
+    get conclusion_scenario_url(scenario)
+
+    assert_response :success
+    assert_select "h1", text: "真相・エンディング"
+  end
+
   private
+
+  def create_scenario
+    @user.scenarios.create!(
+      genre: "ミステリー",
+      world_setting: "テスト用の世界観です。",
+      tone: "シリアス",
+      player_count: 2,
+      play_time: 30,
+      title: "テストシナリオ",
+      summary: "テスト用の概要です。",
+      introduction: "テスト用の導入です。",
+      truth: "テスト用の真相です。"
+    )
+  end
 
   def fake_generation_result
     OpenStruct.new(

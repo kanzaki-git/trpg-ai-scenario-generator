@@ -1,0 +1,21 @@
+<nav class="scenario-navigation mb-5" aria-label="シナリオ詳細メニュー">
+  <div class="scenario-navigation-inner">
+    <div class="nav nav-pills flex-column flex-md-row gap-2">
+      <%= link_to "概要",
+                  scenario_path(@scenario),
+                  class: "nav-link #{'active' if current_page?(scenario_path(@scenario))}" %>
+
+      <%= link_to "登場人物・手がかり",
+                  materials_scenario_path(@scenario),
+                  class: "nav-link #{'active' if current_page?(materials_scenario_path(@scenario))}" %>
+
+      <%= link_to "シーン進行",
+                  scenes_scenario_path(@scenario),
+                  class: "nav-link #{'active' if current_page?(scenes_scenario_path(@scenario))}" %>
+
+      <%= link_to "真相・エンディング",
+                  conclusion_scenario_path(@scenario),
+                  class: "nav-link #{'active' if current_page?(conclusion_scenario_path(@scenario))}" %>
+    </div>
+  </div>
+</nav>

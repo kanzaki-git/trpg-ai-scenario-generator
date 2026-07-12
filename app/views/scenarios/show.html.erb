@@ -1,0 +1,82 @@
+<div class="container scenario-page">
+  <div class="row justify-content-center">
+    <div class="col-12 col-xl-10">
+      <header class="mb-4">
+        <p class="text-secondary mb-2">生成されたシナリオ</p>
+
+        <h1 class="display-6 fw-bold mb-4">
+          <%= @scenario.title %>
+        </h1>
+
+        <div class="d-flex flex-wrap gap-2">
+          <span class="badge rounded-pill text-bg-primary px-3 py-2">
+            ジャンル：<%= @scenario.genre %>
+          </span>
+
+          <span class="badge rounded-pill text-bg-info px-3 py-2">
+            雰囲気：<%= @scenario.tone %>
+          </span>
+
+          <span class="badge rounded-pill text-bg-success px-3 py-2">
+            プレイ人数：<%= @scenario.player_count %>人
+          </span>
+
+          <span class="badge rounded-pill text-bg-warning px-3 py-2">
+            プレイ時間：<%= @scenario.play_time %>分
+          </span>
+        </div>
+      </header>
+
+      <%= render "navigation" %>
+
+      <main>
+        <section class="mb-5">
+          <h2 class="h3 fw-bold mb-3">世界観</h2>
+
+          <div class="card shadow-sm">
+            <div class="card-body p-4 lh-lg text-break">
+              <%= simple_format(
+                    @scenario.world_setting,
+                    class: "mb-0"
+                  ) %>
+            </div>
+          </div>
+        </section>
+
+        <section class="mb-5">
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+            <h2 class="h3 fw-bold mb-0">
+              シナリオ全体のあらすじ
+            </h2>
+
+            <span class="badge text-bg-secondary">
+              ゲームマスター向け
+            </span>
+          </div>
+
+          <div class="card shadow-sm">
+            <div class="card-body p-4 lh-lg text-break">
+              <%= simple_format(
+                    @scenario.summary,
+                    class: "mb-0"
+                  ) %>
+            </div>
+          </div>
+        </section>
+
+        <section class="mb-5">
+          <h2 class="h3 fw-bold mb-3">導入</h2>
+
+          <div class="card shadow-sm">
+            <div class="card-body p-4 lh-lg text-break">
+              <%= simple_format(
+                    @scenario.introduction,
+                    class: "mb-0"
+                  ) %>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+</div>

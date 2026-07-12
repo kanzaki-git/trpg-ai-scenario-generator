@@ -1,2 +1,29 @@
 @import 'bootstrap/scss/bootstrap';
 @import 'bootstrap-icons/font/bootstrap-icons';
+
+:root {
+  --app-header-height: 52px;
+}
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+}
+
+.scenario-navigation {
+  position: sticky;
+  top: var(--app-header-height);
+  z-index: 1020;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  background-color: var(--bs-body-bg);
+}
+
+.scenario-navigation-inner {
+  padding: 0.75rem;
+  background-color: var(--bs-body-bg);
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.5rem;
+  box-shadow: 0 0.25rem 0.75rem rgb(0 0 0 / 8%);
+}

@@ -1,0 +1,112 @@
+<div class="container scenario-page">
+  <div class="row justify-content-center">
+    <div class="col-12 col-xl-10">
+      <header class="mb-4">
+        <p class="text-secondary mb-2">
+          <%= @scenario.title %>
+        </p>
+
+        <h1 class="display-6 fw-bold mb-2">
+          真相・エンディング
+        </h1>
+
+        <p class="text-secondary mb-0">
+          シナリオの真相と、プレイヤーの行動に応じた結末を確認できます。
+        </p>
+      </header>
+
+      <%= render "navigation" %>
+
+      <main>
+        <div class="alert alert-danger mb-5" role="alert">
+          <h2 class="h5 fw-bold mb-2">
+            ネタバレを含みます
+          </h2>
+
+          <p class="mb-0">
+            この画面はゲームマスター専用です。
+            プレイヤーに内容が見えないよう注意してください。
+          </p>
+        </div>
+
+        <section class="mb-5">
+          <h2 class="h3 fw-bold mb-3">
+            真相
+          </h2>
+
+          <% if @scenario.truth.present? %>
+            <details class="card border-danger shadow-sm">
+              <summary
+                class="card-header bg-danger text-white px-4 py-3 fw-bold"
+                style="cursor: pointer;"
+              >
+                真相を表示する
+              </summary>
+
+              <div class="card-body p-4 p-md-5">
+                <div class="lh-lg text-break">
+                  <%= simple_format(
+                        @scenario.truth,
+                        class: "mb-0"
+                      ) %>
+                </div>
+              </div>
+            </details>
+          <% else %>
+            <div class="alert alert-secondary">
+              真相は登録されていません。
+            </div>
+          <% end %>
+        </section>
+
+        <section class="mb-5">
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+            <h2 class="h3 fw-bold mb-0">
+              エンディング候補
+            </h2>
+
+            <span class="badge text-bg-secondary">
+              <%= @scenario.scenario_endings.count %>件
+            </span>
+          </div>
+
+          <p class="text-secondary mb-4">
+            プレイヤーの行動や推理結果に最も近いエンディングを選んでください。
+          </p>
+
+          <% if @scenario.scenario_endings.any? %>
+            <div class="row g-4">
+              <% @scenario.scenario_endings
+                          .order(:position)
+                          .each do |ending| %>
+                <div class="col-12">
+                  <article class="card shadow-sm">
+                    <div class="card-header bg-dark text-white px-4 py-3">
+                      <h3 class="h5 fw-bold mb-0">
+                        エンディング
+                        <%= ending.position %>
+                      </h3>
+                    </div>
+
+                    <div class="card-body p-4">
+                      <div class="lh-lg text-break">
+                        <%= simple_format(
+                              ending.content,
+                              class: "mb-0"
+                            ) %>
+                      </div>
+                    </div>
+                  </article>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <div class="alert alert-secondary">
+              エンディング候補は登録されていません。
+            </div>
+          <% end %>
+        </section>
+      </main>
+    </div>
+  </div>
+</div>

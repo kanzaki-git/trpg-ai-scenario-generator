@@ -1,0 +1,341 @@
+<div class="container scenario-page">
+  <div class="row justify-content-center">
+    <div class="col-12 col-xl-10">
+      <header class="mb-4">
+        <p class="text-secondary mb-2">
+          <%= @scenario.title %>
+        </p>
+
+        <h1 class="display-6 fw-bold mb-2">
+          シーン進行
+        </h1>
+
+        <p class="text-secondary mb-3">
+          進行するシーンを開き、上から順番に確認してください。
+        </p>
+
+        <div class="d-flex flex-wrap gap-2">
+          <span class="badge rounded-pill text-bg-secondary px-3 py-2">
+            全<%= @scenario.scenario_scenes.count %>シーン
+          </span>
+
+          <span class="badge rounded-pill text-bg-info px-3 py-2">
+            想定時間：
+            <%= @scenario.scenario_scenes.sum(:estimated_time) %>分
+          </span>
+        </div>
+      </header>
+
+      <%= render "navigation" %>
+
+      <main>
+        <% if @scenario.scenario_scenes.any? %>
+          <% @scenario.scenario_scenes.order(:position)
+                      .each_with_index do |scene, scene_index| %>
+            <details
+              class="card border-0 shadow-sm mb-4"
+              <%= "open" if scene_index.zero? %>
+            >
+              <summary
+                class="card-header bg-dark text-white px-4 py-3"
+                style="cursor: pointer;"
+              >
+                <div
+                  class="
+                    d-flex
+                    flex-column
+                    flex-md-row
+                    justify-content-between
+                    align-items-md-center
+                    gap-2
+                  "
+                >
+                  <h2 class="h4 fw-bold mb-0">
+                    シーン<%= scene.position %>：
+                    <%= scene.title %>
+                  </h2>
+
+                  <% if scene.estimated_time.present? %>
+                    <span class="badge text-bg-light">
+                      想定時間：<%= scene.estimated_time %>分
+                    </span>
+                  <% end %>
+                </div>
+              </summary>
+
+              <div class="card-body p-4 p-md-5">
+                <% if scene.purpose.present? %>
+                  <section class="mb-5">
+                    <h3 class="h5 fw-bold mb-3">
+                      シーンの目的
+                    </h3>
+
+                    <div class="alert alert-primary mb-0">
+                      <div class="lh-lg text-break">
+                        <%= simple_format(
+                              scene.purpose,
+                              class: "mb-0"
+                            ) %>
+                      </div>
+                    </div>
+                  </section>
+                <% end %>
+
+                <% if scene.trigger_condition.present? %>
+                  <section class="mb-5">
+                    <h3 class="h5 fw-bold mb-3">
+                      シーンの開始条件
+                    </h3>
+
+                    <div class="border rounded-3 p-4">
+                      <div class="lh-lg text-break">
+                        <%= simple_format(
+                              scene.trigger_condition,
+                              class: "mb-0"
+                            ) %>
+                      </div>
+                    </div>
+                  </section>
+                <% end %>
+
+                <% if scene.read_aloud_text.present? %>
+                  <section class="mb-5">
+                    <div
+                      class="
+                        d-flex
+                        flex-wrap
+                        align-items-center
+                        gap-2
+                        mb-3
+                      "
+                    >
+                      <h3 class="h5 fw-bold mb-0">
+                        ゲームマスターが読み上げる文章
+                      </h3>
+
+                      <span class="badge text-bg-primary">
+                        そのまま読み上げ可能
+                      </span>
+                    </div>
+
+                    <div class="card bg-body-tertiary border-0">
+                      <div class="card-body p-4">
+                        <div
+                          class="
+                            border-start
+                            border-4
+                            border-primary
+                            ps-4
+                            lh-lg
+                            text-break
+                          "
+                        >
+                          <%= simple_format(
+                                scene.read_aloud_text,
+                                class: "mb-0"
+                              ) %>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+                <% end %>
+
+                <% if scene.gm_actions.present? %>
+                  <section class="mb-5">
+                    <h3 class="h5 fw-bold mb-3">
+                      ゲームマスターが行うこと
+                    </h3>
+
+                    <div class="border rounded-3 p-4">
+                      <div class="lh-lg text-break">
+                        <%= simple_format(
+                              scene.gm_actions,
+                              class: "mb-0"
+                            ) %>
+                      </div>
+                    </div>
+                  </section>
+                <% end %>
+
+                <% if scene.investigation_options.present? %>
+                  <section class="mb-5">
+                    <h3 class="h5 fw-bold mb-3">
+                      プレイヤーが調査できる場所・行動
+                    </h3>
+
+                    <div class="border rounded-3 p-4">
+                      <div class="lh-lg text-break">
+                        <%= simple_format(
+                              scene.investigation_options,
+                              class: "mb-0"
+                            ) %>
+                      </div>
+                    </div>
+                  </section>
+                <% end %>
+
+                <% if scene.player_questions.present? %>
+                  <section class="mb-5">
+                    <h3 class="h5 fw-bold mb-3">
+                      プレイヤーからの想定質問と回答例
+                    </h3>
+
+                    <div class="card bg-body-tertiary border-0">
+                      <div class="card-body p-4">
+                        <div class="lh-lg text-break">
+                          <%= simple_format(
+                                scene.player_questions,
+                                class: "mb-0"
+                              ) %>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+                <% end %>
+
+                <% if scene.scenario_scene_npcs.any? %>
+                  <section class="mb-5">
+                    <h3 class="h5 fw-bold mb-3">
+                      このシーンに登場する人物
+                    </h3>
+
+                    <% scene.scenario_scene_npcs
+                            .includes(:scenario_npc)
+                            .sort_by {
+                              |scene_npc|
+                              scene_npc.scenario_npc.position
+                            }
+                            .each do |scene_npc| %>
+                      <article class="border rounded-3 p-4 mb-3">
+                        <h4 class="h6 fw-bold mb-3">
+                          <%= scene_npc.scenario_npc.name %>
+                        </h4>
+
+                        <div class="lh-lg text-break">
+                          <%= simple_format(
+                                scene_npc.reaction,
+                                class: "mb-0"
+                              ) %>
+                        </div>
+                      </article>
+                    <% end %>
+                  </section>
+                <% end %>
+
+                <% if scene.scenario_clues.any? %>
+                  <section class="mb-5">
+                    <h3 class="h5 fw-bold mb-3">
+                      このシーンで入手できる手がかり
+                    </h3>
+
+                    <div class="list-group">
+                      <% scene.scenario_clues
+                              .order(:position)
+                              .each do |clue| %>
+                        <div class="list-group-item p-4">
+                          <div class="d-flex align-items-start gap-3">
+                            <span
+                              class="
+                                badge
+                                rounded-pill
+                                text-bg-primary
+                                mt-1
+                              "
+                            >
+                              <%= clue.position %>
+                            </span>
+
+                            <div class="flex-grow-1 lh-lg text-break">
+                              <%= simple_format(
+                                    clue.content,
+                                    class: "mb-0"
+                                  ) %>
+                            </div>
+                          </div>
+                        </div>
+                      <% end %>
+                    </div>
+                  </section>
+                <% end %>
+
+                <% if scene.scenario_events.any? %>
+                  <section class="mb-5">
+                    <h3 class="h5 fw-bold mb-3">
+                      このシーンで発生するイベント
+                    </h3>
+
+                    <% scene.scenario_events
+                            .order(:position)
+                            .each do |event| %>
+                      <article class="border rounded-3 p-4 mb-3">
+                        <div class="lh-lg text-break">
+                          <%= simple_format(
+                                event.content,
+                                class: "mb-0"
+                              ) %>
+                        </div>
+
+                        <% if event.trigger_condition.present? %>
+                          <div class="alert alert-warning mt-4 mb-0">
+                            <h4 class="h6 fw-bold mb-2">
+                              発生条件
+                            </h4>
+
+                            <div class="lh-lg text-break">
+                              <%= simple_format(
+                                    event.trigger_condition,
+                                    class: "mb-0"
+                                  ) %>
+                            </div>
+                          </div>
+                        <% end %>
+                      </article>
+                    <% end %>
+                  </section>
+                <% end %>
+
+                <% if scene.hint.present? %>
+                  <section class="mb-5">
+                    <h3 class="h5 fw-bold mb-3">
+                      進行が止まった場合のヒント
+                    </h3>
+
+                    <div class="alert alert-warning mb-0">
+                      <div class="lh-lg text-break">
+                        <%= simple_format(
+                              scene.hint,
+                              class: "mb-0"
+                            ) %>
+                      </div>
+                    </div>
+                  </section>
+                <% end %>
+
+                <% if scene.transition_condition.present? %>
+                  <section>
+                    <h3 class="h5 fw-bold mb-3">
+                      次のシーンへ進む条件
+                    </h3>
+
+                    <div class="alert alert-success mb-0">
+                      <div class="lh-lg text-break">
+                        <%= simple_format(
+                              scene.transition_condition,
+                              class: "mb-0"
+                            ) %>
+                      </div>
+                    </div>
+                  </section>
+                <% end %>
+              </div>
+            </details>
+          <% end %>
+        <% else %>
+          <div class="alert alert-secondary">
+            シーンは登録されていません。
+          </div>
+        <% end %>
+      </main>
+    </div>
+  </div>
+</div>
