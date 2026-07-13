@@ -1,6 +1,10 @@
 <nav class="app-header navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container">
-    <%= link_to "TRPG AI Scenario Generator", root_path, class: "navbar-brand" %>
+    <% logo_path = logged_in? ? scenarios_path : root_path %>
+
+    <%= link_to "TRPG AI Scenario Generator",
+                logo_path,
+                class: "navbar-brand" %>
 
     <div class="ms-auto">
       <% if logged_in? %>
@@ -8,12 +12,18 @@
           <%= current_user.name %> さん
         </span>
 
-        <%= link_to "ログアウト", logout_path,
-            data: { turbo_method: :delete },
-            class: "btn btn-outline-light" %>
+        <%= link_to "ログアウト",
+                    logout_path,
+                    data: { turbo_method: :delete },
+                    class: "btn btn-outline-light" %>
       <% else %>
-        <%= link_to "ログイン", login_path, class: "btn btn-outline-light me-2" %>
-        <%= link_to "新規登録", new_user_path, class: "btn btn-primary" %>
+        <%= link_to "ログイン",
+                    login_path,
+                    class: "btn btn-outline-light me-2" %>
+
+        <%= link_to "新規登録",
+                    new_user_path,
+                    class: "btn btn-primary" %>
       <% end %>
     </div>
   </div>

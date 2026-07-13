@@ -2,13 +2,12 @@
   <div class="row justify-content-center">
     <div class="col-12 col-xl-10">
       <header class="mb-4">
-        <p class="text-secondary mb-2">生成されたシナリオ</p>
+        <%= render "page_header",
+                  eyebrow: "生成されたシナリオ",
+                  title: @scenario.title,
+                  description: nil %>
 
-        <h1 class="display-6 fw-bold mb-4">
-          <%= @scenario.title %>
-        </h1>
-
-        <div class="d-flex flex-wrap gap-2">
+        <div class="d-flex flex-wrap gap-2 mt-4">
           <span class="badge rounded-pill text-bg-primary px-3 py-2">
             ジャンル：<%= @scenario.genre %>
           </span>

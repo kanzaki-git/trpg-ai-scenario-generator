@@ -2,17 +2,10 @@
   <div class="row justify-content-center">
     <div class="col-12 col-xl-10">
       <header class="mb-4">
-        <p class="text-secondary mb-2">
-          <%= @scenario.title %>
-        </p>
-
-        <h1 class="display-6 fw-bold mb-2">
-          セッション準備資料
-        </h1>
-
-        <p class="text-secondary mb-0">
-          登場人物、手がかり、イベントを確認できます。
-        </p>
+        <%= render "page_header",
+                  eyebrow: @scenario.title,
+                  title: "セッション準備資料",
+                  description: "登場人物、手がかり、イベントを確認できます。" %>
       </header>
 
       <%= render "navigation" %>

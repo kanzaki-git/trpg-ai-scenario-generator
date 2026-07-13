@@ -2,19 +2,12 @@
   <div class="row justify-content-center">
     <div class="col-12 col-xl-10">
       <header class="mb-4">
-        <p class="text-secondary mb-2">
-          <%= @scenario.title %>
-        </p>
+        <%= render "page_header",
+                  eyebrow: @scenario.title,
+                  title: "シーン進行",
+                  description: "進行するシーンを開き、上から順番に確認してください。" %>
 
-        <h1 class="display-6 fw-bold mb-2">
-          シーン進行
-        </h1>
-
-        <p class="text-secondary mb-3">
-          進行するシーンを開き、上から順番に確認してください。
-        </p>
-
-        <div class="d-flex flex-wrap gap-2">
+        <div class="d-flex flex-wrap gap-2 mt-3">
           <span class="badge rounded-pill text-bg-secondary px-3 py-2">
             全<%= @scenario.scenario_scenes.count %>シーン
           </span>
