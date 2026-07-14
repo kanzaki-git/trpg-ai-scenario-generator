@@ -2,6 +2,10 @@ class ScenariosController < ApplicationController
   before_action :set_scenario,
                 only: %i[show materials scenes conclusion]
 
+  def index
+    @scenarios = current_user.scenarios.order(created_at: :desc)
+  end
+
   def new
     @scenario = Scenario.new
   end

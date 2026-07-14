@@ -1,0 +1,135 @@
+<div class="container scenario-page py-4">
+  <div class="row justify-content-center">
+    <div class="col-12 col-xl-10">
+      <header
+        class="
+          d-flex
+          flex-column
+          flex-md-row
+          justify-content-between
+          align-items-md-center
+          gap-3
+          mb-5
+        "
+      >
+        <div>
+          <h1 class="display-6 fw-bold mb-2">
+            シナリオ一覧
+          </h1>
+
+          <p class="text-secondary mb-0">
+            これまでに生成したシナリオを確認できます。
+          </p>
+        </div>
+
+        <%= link_to "新しいシナリオを作成",
+                    new_scenario_path,
+                    class: "btn btn-primary btn-lg flex-shrink-0" %>
+      </header>
+
+      <% if @scenarios.any? %>
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <h2 class="h5 fw-bold mb-0">
+            保存済みシナリオ
+          </h2>
+
+          <span class="badge rounded-pill text-bg-secondary">
+            <%= @scenarios.size %>件
+          </span>
+        </div>
+
+        <div class="vstack gap-4">
+          <% @scenarios.each do |scenario| %>
+            <article class="card border-0 shadow-sm">
+              <div class="card-body p-4">
+                <div
+                  class="
+                    d-flex
+                    flex-column
+                    flex-lg-row
+                    justify-content-between
+                    gap-4
+                  "
+                >
+                  <div class="flex-grow-1">
+                    <h3 class="h4 fw-bold mb-3">
+                      <%= scenario.title %>
+                    </h3>
+
+                    <% if scenario.summary.present? %>
+                      <p class="text-secondary lh-lg mb-4">
+                        <%= truncate(
+                              scenario.summary,
+                              length: 160,
+                              omission: "…"
+                            ) %>
+                      </p>
+                    <% else %>
+                      <p class="text-secondary mb-4">
+                        シナリオ概要は登録されていません。
+                      </p>
+                    <% end %>
+
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                      <span class="badge rounded-pill text-bg-primary px-3 py-2">
+                        ジャンル：<%= scenario.genre %>
+                      </span>
+
+                      <span class="badge rounded-pill text-bg-info px-3 py-2">
+                        雰囲気：<%= scenario.tone %>
+                      </span>
+
+                      <span class="badge rounded-pill text-bg-success px-3 py-2">
+                        プレイ人数：<%= scenario.player_count %>人
+                      </span>
+
+                      <span class="badge rounded-pill text-bg-warning px-3 py-2">
+                        プレイ時間：<%= scenario.play_time %>分
+                      </span>
+                    </div>
+
+                    <p class="small text-secondary mb-0">
+                      作成日時：
+                      <%= scenario.created_at.strftime(
+                            "%Y年%m月%d日 %H:%M"
+                          ) %>
+                    </p>
+                  </div>
+
+                  <div
+                    class="
+                      d-flex
+                      align-items-end
+                      justify-content-lg-end
+                      flex-shrink-0
+                    "
+                  >
+                    <%= link_to "詳細を見る",
+                                scenario_path(scenario),
+                                class: "btn btn-outline-primary px-4" %>
+                  </div>
+                </div>
+              </div>
+            </article>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="card border-0 shadow-sm">
+          <div class="card-body text-center p-5">
+            <h2 class="h4 fw-bold mb-3">
+              保存されたシナリオはまだありません
+            </h2>
+
+            <p class="text-secondary mb-4">
+              条件を入力して、最初のシナリオを生成してみましょう。
+            </p>
+
+            <%= link_to "最初のシナリオを作成する",
+                        new_scenario_path,
+                        class: "btn btn-primary btn-lg" %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

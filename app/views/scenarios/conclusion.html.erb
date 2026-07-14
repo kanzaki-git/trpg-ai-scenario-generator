@@ -2,17 +2,10 @@
   <div class="row justify-content-center">
     <div class="col-12 col-xl-10">
       <header class="mb-4">
-        <p class="text-secondary mb-2">
-          <%= @scenario.title %>
-        </p>
-
-        <h1 class="display-6 fw-bold mb-2">
-          真相・エンディング
-        </h1>
-
-        <p class="text-secondary mb-0">
-          シナリオの真相と、プレイヤーの行動に応じた結末を確認できます。
-        </p>
+        <%= render "page_header",
+                  eyebrow: @scenario.title,
+                  title: "真相・エンディング",
+                  description: "シナリオの真相と、プレイヤーの行動に応じた結末を確認できます。" %>
       </header>
 
       <%= render "navigation" %>

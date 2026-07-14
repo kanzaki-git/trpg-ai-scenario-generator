@@ -17,6 +17,31 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
     }
   end
 
+  test "ログイン中のユーザーは自分のシナリオ一覧を表示できる" do
+    own_scenario = create_scenario
+
+    other_user = User.create!(
+      name: "別のユーザー",
+      email: "other-scenario-test@example.com",
+      password: "password",
+      password_confirmation: "password"
+    )
+
+    other_scenario = create_scenario(
+      user: other_user,
+      title: "他のユーザーのシナリオ"
+    )
+
+    get scenarios_url
+
+    assert_response :success
+    assert_select "h1", text: "シナリオ一覧"
+    assert_select "h3", text: own_scenario.title
+    assert_select "h3", text: other_scenario.title, count: 0
+    assert_select "a[href=?]", scenario_path(own_scenario),
+                  text: "詳細を見る"
+  end
+
   test "ログイン中のユーザーはシナリオ生成画面を表示できる" do
     get new_scenario_url
 
@@ -105,14 +130,14 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
 
   private
 
-  def create_scenario
-    @user.scenarios.create!(
+  def create_scenario(user: @user, title: "テストシナリオ")
+    user.scenarios.create!(
       genre: "ミステリー",
       world_setting: "テスト用の世界観です。",
       tone: "シリアス",
       player_count: 2,
       play_time: 30,
-      title: "テストシナリオ",
+      title: title,
       summary: "テスト用の概要です。",
       introduction: "テスト用の導入です。",
       truth: "テスト用の真相です。"
