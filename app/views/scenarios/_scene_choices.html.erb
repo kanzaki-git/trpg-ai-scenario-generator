@@ -1,0 +1,71 @@
+<% investigation_option_items = scene.investigation_option_items %>
+
+<% if investigation_option_items.any? %>
+  <section class="mb-5">
+    <h3 class="h5 fw-bold mb-2">
+      プレイヤーの行動選択肢
+    </h3>
+
+    <p class="text-body-secondary mb-4">
+      プレイヤーの行動に近い項目を開いてください。
+      選択肢にない行動にも柔軟に対応できます。
+    </p>
+
+    <div class="d-grid gap-3">
+      <% investigation_option_items.each_with_index do |option, option_index| %>
+        <details class="border rounded-3">
+          <summary
+            class="fw-bold p-3"
+            style="cursor: pointer;"
+          >
+            選択肢<%= option_index + 1 %>：
+            <%= option["label"] %>
+          </summary>
+
+          <div class="border-top p-4">
+            <div class="alert alert-info">
+              <h4 class="h6 fw-bold mb-2">
+                行動の結果
+              </h4>
+
+              <div class="lh-lg text-break">
+                <%= simple_format(
+                      option["result"],
+                      class: "mb-0"
+                    ) %>
+              </div>
+            </div>
+
+            <div class="border rounded-3 p-4">
+              <h4 class="h6 fw-bold mb-2">
+                ゲームマスターが次に行うこと
+              </h4>
+
+              <div class="lh-lg text-break">
+                <%= simple_format(
+                      option["gm_guide"],
+                      class: "mb-0"
+                    ) %>
+              </div>
+            </div>
+          </div>
+        </details>
+      <% end %>
+    </div>
+  </section>
+<% elsif scene.investigation_options.present? %>
+  <section class="mb-5">
+    <h3 class="h5 fw-bold mb-3">
+      プレイヤーが調査できる場所・行動
+    </h3>
+
+    <div class="border rounded-3 p-4">
+      <div class="lh-lg text-break">
+        <%= simple_format(
+              scene.investigation_options,
+              class: "mb-0"
+            ) %>
+      </div>
+    </div>
+  </section>
+<% end %>

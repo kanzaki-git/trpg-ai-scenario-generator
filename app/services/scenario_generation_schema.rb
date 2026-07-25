@@ -21,6 +21,12 @@ class ScenarioGenerationSchema < OpenAI::BaseModel
     required :reaction, String
   end
 
+  class InvestigationOption < OpenAI::BaseModel
+    required :label, String
+    required :result, String
+    required :gm_guide, String
+  end
+
   class Scene < OpenAI::BaseModel
     required :title, String
     required :purpose, String
@@ -28,7 +34,7 @@ class ScenarioGenerationSchema < OpenAI::BaseModel
     required :read_aloud_text, String
     required :gm_actions, String
     required :player_questions, String
-    required :investigation_options, String
+    required :investigation_options, OpenAI::ArrayOf[InvestigationOption]
     required :trigger_condition, String
     required :transition_condition, String
     required :hint, String
