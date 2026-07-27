@@ -34,6 +34,7 @@ class ScenarioGenerationSaver
     scenario.assign_attributes(
       title: generation_result.title,
       summary: generation_result.summary,
+      story_outline: generation_result.story_outline,
       introduction: generation_result.introduction,
       truth: generation_result.truth
     )
@@ -85,7 +86,9 @@ class ScenarioGenerationSaver
         read_aloud_text: scene_data.read_aloud_text,
         gm_actions: scene_data.gm_actions,
         player_questions: scene_data.player_questions,
-        investigation_options: scene_data.investigation_options,
+        investigation_options: serialize_investigation_options(
+          scene_data.investigation_options
+        ),
         trigger_condition: scene_data.trigger_condition,
         transition_condition: scene_data.transition_condition,
         hint: scene_data.hint,
@@ -97,6 +100,18 @@ class ScenarioGenerationSaver
         generation_data: scene_data
       }
     end
+  end
+
+  def serialize_investigation_options(investigation_options)
+    option_data = investigation_options.map do |investigation_option|
+      {
+        label: investigation_option.label,
+        result: investigation_option.result,
+        gm_guide: investigation_option.gm_guide
+      }
+    end
+
+    JSON.generate(option_data)
   end
 
   def save_endings

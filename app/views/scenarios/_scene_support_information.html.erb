@@ -1,0 +1,133 @@
+<% if scene.player_questions.present? ||
+      scene.scenario_scene_npcs.any? ||
+      scene.scenario_clues.any? ||
+      scene.scenario_events.any? %>
+  <section class="mb-5">
+    <h3 class="h5 fw-bold mb-2">
+      このシーンの補助情報
+    </h3>
+
+    <p class="text-body-secondary mb-4">
+      プレイヤーの行動や質問に応じて、
+      必要な項目だけ開いて確認してください。
+    </p>
+
+    <% if scene.scenario_scene_npcs.any? %>
+      <details class="border rounded-3 mb-3">
+        <summary
+          class="fw-bold p-3"
+          style="cursor: pointer;"
+        >
+          このシーンに登場する人物
+          （<%= scene.scenario_scene_npcs.count %>人）
+        </summary>
+
+        <div class="border-top p-4">
+          <% scene.scenario_scene_npcs
+                  .includes(:scenario_npc)
+                  .sort_by {
+                    |scene_npc|
+                    scene_npc.scenario_npc.position
+                  }
+                  .each do |scene_npc| %>
+            <article class="mb-4">
+              <h4 class="h6 fw-bold mb-2">
+                <%= scene_npc.scenario_npc.name %>
+              </h4>
+
+              <div class="lh-lg text-break">
+                <%= simple_format(
+                      scene_npc.reaction,
+                      class: "mb-0"
+                    ) %>
+              </div>
+            </article>
+          <% end %>
+        </div>
+      </details>
+    <% end %>
+
+    <% if scene.scenario_clues.any? %>
+      <details class="border rounded-3 mb-3">
+        <summary
+          class="fw-bold p-3"
+          style="cursor: pointer;"
+        >
+          このシーンで入手できる手がかり
+          （<%= scene.scenario_clues.count %>件）
+        </summary>
+
+        <div class="border-top p-4">
+          <% scene.scenario_clues.order(:position).each do |clue| %>
+            <div class="alert alert-primary mb-3">
+              <%= simple_format(
+                    clue.content,
+                    class: "mb-0"
+                  ) %>
+            </div>
+          <% end %>
+        </div>
+      </details>
+    <% end %>
+
+    <% if scene.scenario_events.any? %>
+      <details class="border rounded-3 mb-3">
+        <summary
+          class="fw-bold p-3"
+          style="cursor: pointer;"
+        >
+          このシーンで発生するイベント
+          （<%= scene.scenario_events.count %>件）
+        </summary>
+
+        <div class="border-top p-4">
+          <% scene.scenario_events.order(:position).each do |event| %>
+            <article class="mb-4">
+              <div class="lh-lg text-break">
+                <%= simple_format(
+                      event.content,
+                      class: "mb-0"
+                    ) %>
+              </div>
+
+              <% if event.trigger_condition.present? %>
+                <div class="alert alert-warning mt-3 mb-0">
+                  <h4 class="h6 fw-bold mb-2">
+                    発生条件
+                  </h4>
+
+                  <div class="lh-lg text-break">
+                    <%= simple_format(
+                          event.trigger_condition,
+                          class: "mb-0"
+                        ) %>
+                  </div>
+                </div>
+              <% end %>
+            </article>
+          <% end %>
+        </div>
+      </details>
+    <% end %>
+
+    <% if scene.player_questions.present? %>
+      <details class="border rounded-3">
+        <summary
+          class="fw-bold p-3"
+          style="cursor: pointer;"
+        >
+          プレイヤーからの想定質問と回答例
+        </summary>
+
+        <div class="border-top p-4">
+          <div class="lh-lg text-break">
+            <%= simple_format(
+                  scene.player_questions,
+                  class: "mb-0"
+                ) %>
+          </div>
+        </div>
+      </details>
+    <% end %>
+  </section>
+<% end %>

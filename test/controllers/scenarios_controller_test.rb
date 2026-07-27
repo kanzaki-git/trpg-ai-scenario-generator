@@ -76,6 +76,44 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to scenario_path(created_scenario)
   end
 
+  test "シナリオ生成に失敗した場合は入力内容を保持して生成画面を再表示する" do
+    failing_generator = Object.new
+
+    failing_generator.define_singleton_method(:call) do
+      raise ScenarioGenerator::GenerationError,
+            "テスト用の生成エラー"
+    end
+
+    ScenarioGenerator.stub(
+      :new,
+      ->(scenario:) { failing_generator }
+    ) do
+      assert_no_difference("Scenario.count") do
+        post scenarios_url, params: {
+          scenario: {
+            genre: "ホラー",
+            world_setting: "現代日本の廃校",
+            tone: "不気味",
+            player_count: 2,
+            play_time: 60
+          }
+        }
+      end
+    end
+
+    assert_response :service_unavailable
+
+    assert_select ".alert-danger",
+                  text: /シナリオの生成に失敗しました/
+
+    assert_select(
+      'select[name="scenario[genre]"] option[selected][value="ホラー"]'
+    )
+
+    assert_select 'textarea[name="scenario[world_setting]"]',
+                  text: "現代日本の廃校"
+  end
+
   test "未入力の場合はシナリオを作成できない" do
     assert_no_difference("Scenario.count") do
       post scenarios_url, params: {
@@ -148,6 +186,7 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
     OpenStruct.new(
       title: "テストシナリオ",
       summary: "テスト用の概要です。",
+      story_outline: "テスト用の詳しいストーリーです。",
       introduction: "テスト用の導入です。",
       truth: "テスト用の真相です。",
       npcs: [],
