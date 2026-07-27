@@ -33,6 +33,35 @@
         </p>
       </div>
 
+      <% if @scenario.introduction.present? %>
+        <section class="mb-5">
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+            <h2 class="h3 fw-bold mb-0">
+              セッション開始時の読み上げ
+            </h2>
+
+            <span class="badge text-bg-primary">
+              最初に読む
+            </span>
+          </div>
+
+          <div class="card shadow-sm border-primary">
+            <div class="card-header fw-bold">
+              プレイヤーへそのまま読み上げてください
+            </div>
+
+            <div class="card-body p-4">
+              <div class="lh-lg text-break">
+                <%= simple_format(
+                      @scenario.introduction,
+                      class: "mb-0"
+                    ) %>
+              </div>
+            </div>
+          </div>
+        </section>
+      <% end %>
+
       <main>
         <% if @scenario.scenario_scenes.any? %>
           <% @scenario.scenario_scenes.order(:position)

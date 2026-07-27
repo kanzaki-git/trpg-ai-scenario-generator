@@ -27,6 +27,18 @@ class ScenariosController < ApplicationController
     else
       render :new, status: :unprocessable_entity
     end
+  rescue OpenAI::Errors::APIError,
+        ScenarioGenerator::GenerationError => e
+    Rails.logger.error(
+      "シナリオ生成に失敗しました: #{e.class} #{e.message}"
+    )
+
+    @scenario.errors.add(
+      :base,
+      "シナリオの生成に失敗しました。時間をおいて、もう一度お試しください。"
+    )
+
+    render :new, status: :service_unavailable
   end
 
   def show; end

@@ -34,6 +34,7 @@ class ScenarioGenerationSaver
     scenario.assign_attributes(
       title: generation_result.title,
       summary: generation_result.summary,
+      story_outline: generation_result.story_outline,
       introduction: generation_result.introduction,
       truth: generation_result.truth
     )

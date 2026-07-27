@@ -49,7 +49,7 @@
             </h2>
 
             <span class="badge text-bg-secondary">
-              ゲームマスター向け
+              クイックガイド
             </span>
           </div>
 
@@ -63,18 +63,32 @@
           </div>
         </section>
 
-        <section class="mb-5">
-          <h2 class="h3 fw-bold mb-3">導入</h2>
+        <% if @scenario.story_outline.present? %>
+          <section class="mb-5">
+            <details class="card shadow-sm">
+              <summary
+                class="card-header fw-bold px-4 py-3"
+                style="cursor: pointer;"
+              >
+                ゲームマスター向けストーリー全体を見る
+              </summary>
 
-          <div class="card shadow-sm">
-            <div class="card-body p-4 lh-lg text-break">
-              <%= simple_format(
-                    @scenario.introduction,
-                    class: "mb-0"
-                  ) %>
-            </div>
-          </div>
-        </section>
+              <div class="card-body p-4">
+                <div class="alert alert-warning">
+                  <strong>ネタバレを含みます。</strong>
+                  セッション前にゲームマスターだけが確認してください。
+                </div>
+
+                <div class="lh-lg text-break">
+                  <%= simple_format(
+                        @scenario.story_outline,
+                        class: "mb-0"
+                      ) %>
+                </div>
+              </div>
+            </details>
+          </section>
+        <% end %>
       </main>
     </div>
   </div>

@@ -51,6 +51,7 @@ class ScenarioGenerationSchema < OpenAI::BaseModel
 
   required :title, String
   required :summary, String
+  required :story_outline, String
   required :introduction, String
   required :truth, String
   required :npcs, OpenAI::ArrayOf[Npc]

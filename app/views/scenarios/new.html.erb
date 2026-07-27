@@ -9,7 +9,15 @@
             条件を選択すると、AIがTRPGシナリオを生成します。
           </p>
 
-          <%= form_with model: @scenario, local: true do |form| %>
+          <%= form_with model: @scenario,
+                        local: true,
+                        data: {
+                          controller: "scenario-generation",
+                          action: "
+                            submit->scenario-generation#start
+                            turbo:submit-end->scenario-generation#finish
+                          "
+                        } do |form| %>  
             <% if @scenario.errors.any? %>
               <div class="alert alert-danger mb-4">
                 <p class="fw-bold mb-2">
@@ -84,7 +92,45 @@
 
             <div class="d-grid">
               <%= form.submit "シナリオを生成する",
-                              class: "btn btn-primary btn-lg" %>
+                              class: "btn btn-primary btn-lg",
+                              data: {
+                                turbo_submits_with: "シナリオを生成しています…"
+                              } %>
+            </div>
+
+            <div
+              data-scenario-generation-target="overlay"
+              class="position-fixed top-0 start-0 w-100 h-100"
+              style="z-index: 2000;"
+              hidden
+            >
+              <div
+                class="
+                  d-flex
+                  flex-column
+                  justify-content-center
+                  align-items-center
+                  w-100
+                  h-100
+                  bg-dark
+                  bg-opacity-75
+                  text-white
+                "
+              >
+                <div
+                  class="spinner-border mb-4"
+                  role="status"
+                  aria-hidden="true"
+                ></div>
+
+                <p class="h4 fw-bold mb-2">
+                  シナリオを生成しています
+                </p>
+
+                <p class="mb-0">
+                  完成までそのままお待ちください。
+                </p>
+              </div>
             </div>
           <% end %>
         </div>
