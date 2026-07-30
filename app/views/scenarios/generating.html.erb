@@ -1,0 +1,57 @@
+<div
+  class="container py-5"
+  data-controller="scenario-generation-polling"
+  data-scenario-generation-polling-status-url-value="<%= generation_status_scenario_path(@scenario) %>"
+  data-scenario-generation-polling-interval-value="3000"
+>
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-5 text-center">
+          <div
+            data-scenario-generation-polling-target="loading"
+          >
+            <div
+              class="spinner-border text-primary mb-4"
+              role="status"
+            >
+              <span class="visually-hidden">
+                シナリオを生成しています
+              </span>
+            </div>
+
+            <h1 class="h2 fw-bold mb-3">
+              シナリオを生成しています
+            </h1>
+
+            <p class="text-muted mb-2">
+              登場人物や手がかりのつながりを確認しながら、
+              シナリオを作成しています。
+            </p>
+
+            <p class="text-muted mb-0">
+              完成するまで、この画面を開いたままお待ちください。
+            </p>
+          </div>
+
+          <div
+            class="d-none"
+            data-scenario-generation-polling-target="failure"
+          >
+            <h1 class="h2 fw-bold mb-3">
+              シナリオの生成に失敗しました
+            </h1>
+
+            <p class="text-muted mb-4">
+              時間をおいて、もう一度お試しください。
+            </p>
+
+            <%= link_to "もう一度生成する",
+                        new_scenario_path,
+                        class: "btn btn-primary" %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

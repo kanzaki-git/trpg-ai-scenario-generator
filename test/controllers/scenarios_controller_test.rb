@@ -48,9 +48,16 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
-  test "ログイン中のユーザーはシナリオを作成できる" do
+  test "ログイン中のユーザーはシナリオ生成を開始できる" do
+    background_response = OpenStruct.new(
+      id: "resp_test_background"
+    )
+
     fake_generator = Minitest::Mock.new
-    fake_generator.expect(:call, fake_generation_result)
+    fake_generator.expect(
+      :start_background,
+      background_response
+    )
 
     ScenarioGenerator.stub(
       :new,
@@ -71,15 +78,18 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
 
     fake_generator.verify
 
-    created_scenario = Scenario.find_by!(title: "テストシナリオ")
+    created_scenario = Scenario.find_by!(
+      openai_response_id: "resp_test_background"
+    )
 
-    assert_redirected_to scenario_path(created_scenario)
+    assert created_scenario.generating?
+    assert_redirected_to generating_scenario_path(created_scenario)
   end
 
   test "シナリオ生成に失敗した場合は入力内容を保持して生成画面を再表示する" do
     failing_generator = Object.new
 
-    failing_generator.define_singleton_method(:call) do
+    failing_generator.define_singleton_method(:start_background) do
       raise ScenarioGenerator::GenerationError,
             "テスト用の生成エラー"
     end
@@ -179,21 +189,6 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
       summary: "テスト用の概要です。",
       introduction: "テスト用の導入です。",
       truth: "テスト用の真相です。"
-    )
-  end
-
-  def fake_generation_result
-    OpenStruct.new(
-      title: "テストシナリオ",
-      summary: "テスト用の概要です。",
-      story_outline: "テスト用の詳しいストーリーです。",
-      introduction: "テスト用の導入です。",
-      truth: "テスト用の真相です。",
-      npcs: [],
-      clues: [],
-      events: [],
-      scenes: [],
-      endings: []
     )
   end
 end
