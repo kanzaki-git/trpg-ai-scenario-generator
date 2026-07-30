@@ -1,6 +1,14 @@
 class Scenario < ApplicationRecord
   belongs_to :user
 
+  enum :generation_status,
+      {
+        generating: "generating",
+        completed: "completed",
+        failed: "failed"
+      },
+      validate: true
+
   has_many :scenario_scenes, dependent: :destroy
   has_many :scenario_npcs, dependent: :destroy
   has_many :scenario_clues, dependent: :destroy

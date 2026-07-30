@@ -7,6 +7,46 @@ class ScenarioGenerator
     @scenario = scenario
   end
 
+  def start_background
+    response = client.responses.create(
+      model: MODEL,
+      input: prompt,
+      text: ScenarioGenerationSchema,
+      background: true
+    )
+
+    return response if response.id.present?
+
+    raise GenerationError,
+          "OpenAI APIから生成受付番号を取得できませんでした"
+  end
+
+  def retrieve_background(response_id)
+    client.responses.retrieve(response_id)
+  end
+
+  def extract_background_result(response)
+    json_text = response.output
+      .flat_map { |item| item.respond_to?(:content) ? item.content : [] }
+      .filter_map { |content| content.respond_to?(:text) ? content.text : nil }
+      .first
+
+    if json_text.blank?
+      raise GenerationError,
+            "OpenAI APIの生成結果を取得できませんでした"
+    end
+
+    generation_data = JSON.parse(
+      json_text,
+      symbolize_names: true
+    )
+
+    build_generation_result(generation_data)
+  rescue JSON::ParserError, KeyError, ArgumentError => e
+    raise GenerationError,
+          "OpenAI APIの生成結果を変換できませんでした: #{e.message}"
+  end
+
   def call
     response = client.responses.create(
       model: MODEL,
@@ -409,6 +449,53 @@ class ScenarioGenerator
       定義された構造化出力の形式に従って、
       すべての項目を生成してください。
     PROMPT
+  end
+
+  def build_generation_result(generation_data)
+    ScenarioGenerationSchema.new(
+      **generation_data.merge(
+        npcs: build_collection(
+          generation_data.fetch(:npcs),
+          ScenarioGenerationSchema::Npc
+        ),
+        clues: build_collection(
+          generation_data.fetch(:clues),
+          ScenarioGenerationSchema::Clue
+        ),
+        events: build_collection(
+          generation_data.fetch(:events),
+          ScenarioGenerationSchema::Event
+        ),
+        scenes: generation_data.fetch(:scenes).map do |scene_data|
+          build_scene(scene_data)
+        end,
+        endings: build_collection(
+          generation_data.fetch(:endings),
+          ScenarioGenerationSchema::Ending
+        )
+      )
+    )
+  end
+
+  def build_scene(scene_data)
+    ScenarioGenerationSchema::Scene.new(
+      **scene_data.merge(
+        investigation_options: build_collection(
+          scene_data.fetch(:investigation_options),
+          ScenarioGenerationSchema::InvestigationOption
+        ),
+        npc_appearances: build_collection(
+          scene_data.fetch(:npc_appearances),
+          ScenarioGenerationSchema::SceneNpc
+        )
+      )
+    )
+  end
+
+  def build_collection(collection, model_class)
+    collection.map do |attributes|
+      model_class.new(**attributes)
+    end
   end
 
   def extract_result(response)

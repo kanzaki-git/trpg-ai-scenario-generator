@@ -7,6 +7,8 @@ Rails.application.routes.draw do
       get :materials
       get :scenes
       get :conclusion
+      get :generating
+      get :generation_status
     end
   end
 
