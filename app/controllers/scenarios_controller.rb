@@ -1,6 +1,6 @@
 class ScenariosController < ApplicationController
   before_action :set_scenario,
-                only: %i[show materials scenes conclusion generating generation_status]
+                only: %i[show materials scenes conclusion generating generation_status destroy]
 
   def index
     @scenarios = current_user.scenarios
@@ -46,6 +46,14 @@ class ScenariosController < ApplicationController
   end
 
   def show; end
+
+  def destroy
+    @scenario.destroy!
+
+    redirect_to scenarios_path,
+                notice: "シナリオを削除しました。",
+                status: :see_other
+  end
 
   def materials; end
 
