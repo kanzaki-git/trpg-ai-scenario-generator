@@ -176,6 +176,37 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
     assert_select "h1", text: "真相・エンディング"
   end
 
+  test "ログイン中のユーザーは自分のシナリオを削除できる" do
+    scenario = create_scenario
+
+    assert_difference("Scenario.count", -1) do
+      delete scenario_url(scenario)
+    end
+
+    assert_redirected_to scenarios_url
+    assert_equal "シナリオを削除しました。", flash[:notice]
+  end
+
+  test "ログイン中のユーザーは他のユーザーのシナリオを削除できない" do
+    other_user = User.create!(
+      name: "別のユーザー",
+      email: "delete-other-scenario@example.com",
+      password: "password",
+      password_confirmation: "password"
+    )
+
+    other_scenario = create_scenario(
+      user: other_user,
+      title: "削除できないシナリオ"
+    )
+
+    assert_no_difference("Scenario.count") do
+      delete scenario_url(other_scenario)
+    end
+
+    assert_response :not_found
+  end
+
   private
 
   def create_scenario(user: @user, title: "テストシナリオ")
