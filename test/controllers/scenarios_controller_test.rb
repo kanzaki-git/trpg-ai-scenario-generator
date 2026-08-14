@@ -46,6 +46,10 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
     get new_scenario_url
 
     assert_response :success
+    assert_select(
+      'input[type="submit"]' \
+      '[data-turbo-submits-with="シナリオを生成しています…"]'
+    )
   end
 
   test "ログイン中のユーザーはシナリオ生成を開始できる" do
@@ -84,6 +88,38 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
 
     assert created_scenario.generating?
     assert_redirected_to generating_scenario_path(created_scenario)
+    assert_equal 1, @user.reload.scenario_generation_count
+  end
+
+  test "生成中のシナリオがある場合は新しい生成を開始できない" do
+    generating_scenario = create_scenario
+    generating_scenario.update!(
+      generation_status: :generating
+    )
+    @user.update!(scenario_generation_count: 1)
+
+    ScenarioGenerator.stub(
+      :new,
+      ->(scenario:) { flunk "生成中にOpenAI APIを呼び出しています" }
+    ) do
+      assert_no_difference("Scenario.count") do
+        post scenarios_url, params: {
+          scenario: {
+            genre: "ホラー",
+            world_setting: "現代日本",
+            tone: "ダーク",
+            player_count: 2,
+            play_time: 30
+          }
+        }
+      end
+    end
+
+    assert_redirected_to generating_scenario_path(generating_scenario)
+    assert_equal(
+      "現在、別のシナリオを生成中です。生成完了までお待ちください。",
+      flash[:alert]
+    )
     assert_equal 1, @user.reload.scenario_generation_count
   end
 
