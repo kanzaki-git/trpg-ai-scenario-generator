@@ -84,6 +84,7 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
 
     assert created_scenario.generating?
     assert_redirected_to generating_scenario_path(created_scenario)
+    assert_equal 1, @user.reload.scenario_generation_count
   end
 
   test "シナリオ生成に失敗した場合は入力内容を保持して生成画面を再表示する" do
@@ -112,6 +113,7 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_response :service_unavailable
+    assert_equal 0, @user.reload.scenario_generation_count
 
     assert_select ".alert-danger",
                   text: /シナリオの生成に失敗しました/
@@ -122,6 +124,35 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
 
     assert_select 'textarea[name="scenario[world_setting]"]',
                   text: "現代日本の廃校"
+  end
+
+  test "生成回数が上限に達している場合はシナリオ生成を開始できない" do
+    @user.update!(
+      scenario_generation_count: User::SCENARIO_GENERATION_LIMIT
+    )
+
+    ScenarioGenerator.stub(
+      :new,
+      ->(scenario:) { flunk "上限到達時にOpenAI APIを呼び出しています" }
+    ) do
+      assert_no_difference("Scenario.count") do
+        post scenarios_url, params: {
+          scenario: {
+            genre: "ホラー",
+            world_setting: "現代日本",
+            tone: "ダーク",
+            player_count: 2,
+            play_time: 30
+          }
+        }
+      end
+    end
+
+    assert_redirected_to new_scenario_url
+    assert_equal "シナリオを生成できる回数は3回までです。",
+                 flash[:alert]
+    assert_equal User::SCENARIO_GENERATION_LIMIT,
+                 @user.reload.scenario_generation_count
   end
 
   test "未入力の場合はシナリオを作成できない" do
@@ -138,6 +169,41 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_response :unprocessable_entity
+  end
+
+  test "バックグラウンド生成に失敗した場合は生成回数を返却する" do
+    scenario = create_scenario
+    scenario.update!(
+      generation_status: :generating,
+      openai_response_id: "resp_background_failed"
+    )
+    @user.update!(scenario_generation_count: 1)
+
+    openai_response = OpenStruct.new(
+      id: "resp_background_failed",
+      status: :failed
+    )
+
+    fake_generator = Minitest::Mock.new
+    fake_generator.expect(
+      :retrieve_background,
+      openai_response,
+      [ "resp_background_failed" ]
+    )
+
+    ScenarioGenerator.stub(
+      :new,
+      ->(scenario:) { fake_generator }
+    ) do
+      get generation_status_scenario_url(scenario)
+    end
+
+    fake_generator.verify
+
+    assert_response :success
+    assert_equal "failed", response.parsed_body["status"]
+    assert_equal 0, @user.reload.scenario_generation_count
+    assert scenario.reload.failed?
   end
 
   test "ログイン中のユーザーはシナリオ概要を表示できる" do

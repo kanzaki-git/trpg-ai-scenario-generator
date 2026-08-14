@@ -3,6 +3,28 @@ class User < ApplicationRecord
 
   has_many :scenarios, dependent: :destroy
 
+  SCENARIO_GENERATION_LIMIT = 3
+
+  def scenario_generation_available?
+    scenario_generation_count < SCENARIO_GENERATION_LIMIT
+  end
+
+  def reserve_scenario_generation!
+    with_lock do
+      return false unless scenario_generation_available?
+
+      increment!(:scenario_generation_count)
+    end
+
+    true
+  end
+
+  def refund_scenario_generation!
+    with_lock do
+      decrement!(:scenario_generation_count) if scenario_generation_count.positive?
+    end
+  end
+
   validates :name, presence: true, length: { maximum: 255 }
   validates :email, presence: true, uniqueness: true
 

@@ -16,6 +16,14 @@ class ScenariosController < ApplicationController
     @scenario = current_user.scenarios.build(scenario_params)
 
     if @scenario.valid?
+      unless current_user.reserve_scenario_generation!
+        redirect_to new_scenario_path,
+                    alert: "シナリオを生成できる回数は3回までです。"
+        return
+      end
+
+      @generation_reserved = true
+
       background_response = ScenarioGenerator.new(
         scenario: @scenario
       ).start_background
@@ -33,6 +41,8 @@ class ScenariosController < ApplicationController
     end
   rescue OpenAI::Errors::APIError,
         ScenarioGenerator::GenerationError => e
+    current_user.refund_scenario_generation! if @generation_reserved
+
     Rails.logger.error(
       "シナリオ生成に失敗しました: #{e.class} #{e.message}"
     )
@@ -154,6 +164,8 @@ class ScenariosController < ApplicationController
       @scenario.update!(
         generation_status: :failed
       )
+
+      @scenario.user.refund_scenario_generation!
     end
   end
 
