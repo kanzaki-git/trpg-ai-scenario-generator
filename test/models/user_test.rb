@@ -28,10 +28,14 @@ class UserTest < ActiveSupport::TestCase
     assert_not @user.scenario_generation_available?
   end
 
-  test "生成回数を確保すると回数が1増える" do
-    result = @user.reserve_scenario_generation!
+  test "生成回数を確保すると生成中のシナリオを保存して回数が1増える" do
+    scenario = build_scenario
 
-    assert result
+    result = @user.reserve_scenario_generation!(scenario)
+
+    assert_equal :reserved, result
+    assert scenario.persisted?
+    assert scenario.generating?
     assert_equal 1, @user.reload.scenario_generation_count
   end
 
@@ -39,12 +43,27 @@ class UserTest < ActiveSupport::TestCase
     @user.update!(
       scenario_generation_count: User::SCENARIO_GENERATION_LIMIT
     )
+    scenario = build_scenario
 
-    result = @user.reserve_scenario_generation!
+    result = @user.reserve_scenario_generation!(scenario)
 
-    assert_not result
+    assert_equal :limit_reached, result
+    assert_not scenario.persisted?
     assert_equal User::SCENARIO_GENERATION_LIMIT,
                  @user.reload.scenario_generation_count
+  end
+
+  test "生成中のシナリオがある場合は新しい生成を開始できない" do
+    generating_scenario = build_scenario
+    generating_scenario.update!(generation_status: :generating)
+
+    new_scenario = build_scenario
+
+    result = @user.reserve_scenario_generation!(new_scenario)
+
+    assert_equal :already_generating, result
+    assert_not new_scenario.persisted?
+    assert_equal 0, @user.reload.scenario_generation_count
   end
 
   test "生成回数を返却すると回数が1減る" do
@@ -59,5 +78,17 @@ class UserTest < ActiveSupport::TestCase
     @user.refund_scenario_generation!
 
     assert_equal 0, @user.reload.scenario_generation_count
+  end
+
+  private
+
+  def build_scenario
+    @user.scenarios.build(
+      genre: "ホラー",
+      world_setting: "現代日本",
+      tone: "ダーク",
+      player_count: 2,
+      play_time: 30
+    )
   end
 end
