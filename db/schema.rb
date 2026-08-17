@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_08_14_031508) do
+ActiveRecord::Schema[8.0].define(version: 2026_08_17_123352) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -40,6 +40,34 @@ ActiveRecord::Schema[8.0].define(version: 2026_08_14_031508) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["scenario_id"], name: "index_scenario_events_on_scenario_id"
+  end
+
+  create_table "scenario_generation_logs", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "scenario_id"
+    t.string "status", default: "processing", null: false
+    t.string "openai_response_id"
+    t.string "openai_model", null: false
+    t.integer "input_tokens", default: 0, null: false
+    t.integer "cached_input_tokens", default: 0, null: false
+    t.integer "output_tokens", default: 0, null: false
+    t.integer "reasoning_tokens", default: 0, null: false
+    t.integer "total_tokens", default: 0, null: false
+    t.decimal "input_price_per_million_usd", precision: 10, scale: 4, default: "0.0", null: false
+    t.decimal "cached_input_price_per_million_usd", precision: 10, scale: 4, default: "0.0", null: false
+    t.decimal "output_price_per_million_usd", precision: 10, scale: 4, default: "0.0", null: false
+    t.decimal "estimated_cost_usd", precision: 12, scale: 8, default: "0.0", null: false
+    t.datetime "started_at", null: false
+    t.datetime "finished_at"
+    t.string "openai_status"
+    t.string "error_class"
+    t.text "error_message"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["openai_response_id"], name: "index_scenario_generation_logs_on_openai_response_id", unique: true
+    t.index ["scenario_id"], name: "index_scenario_generation_logs_on_scenario_id"
+    t.index ["user_id", "created_at"], name: "index_scenario_generation_logs_on_user_id_and_created_at"
+    t.index ["user_id"], name: "index_scenario_generation_logs_on_user_id"
   end
 
   create_table "scenario_npcs", force: :cascade do |t|
@@ -134,6 +162,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_08_14_031508) do
   add_foreign_key "scenario_clues", "scenarios"
   add_foreign_key "scenario_endings", "scenarios"
   add_foreign_key "scenario_events", "scenarios"
+  add_foreign_key "scenario_generation_logs", "scenarios", on_delete: :nullify
+  add_foreign_key "scenario_generation_logs", "users"
   add_foreign_key "scenario_npcs", "scenarios"
   add_foreign_key "scenario_scene_clues", "scenario_clues"
   add_foreign_key "scenario_scene_clues", "scenario_scenes"

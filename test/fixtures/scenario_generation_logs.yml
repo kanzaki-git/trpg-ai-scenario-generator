@@ -1,0 +1,35 @@
+one:
+  user: one
+  scenario: one
+  status: processing
+  openai_response_id: resp_fixture_one
+  openai_model: gpt-5.2
+  input_tokens: 0
+  cached_input_tokens: 0
+  output_tokens: 0
+  reasoning_tokens: 0
+  total_tokens: 0
+  input_price_per_million_usd: 1.75
+  cached_input_price_per_million_usd: 0.175
+  output_price_per_million_usd: 14.00
+  estimated_cost_usd: 0
+  started_at: 2026-08-17 21:30:00
+
+two:
+  user: two
+  scenario: two
+  status: completed
+  openai_response_id: resp_fixture_two
+  openai_model: gpt-5.2
+  input_tokens: 6000
+  cached_input_tokens: 0
+  output_tokens: 3000
+  reasoning_tokens: 500
+  total_tokens: 9000
+  input_price_per_million_usd: 1.75
+  cached_input_price_per_million_usd: 0.175
+  output_price_per_million_usd: 14.00
+  estimated_cost_usd: 0.0525
+  started_at: 2026-08-17 21:30:00
+  finished_at: 2026-08-17 21:33:00
+  openai_status: completed

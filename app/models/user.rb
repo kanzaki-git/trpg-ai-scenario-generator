@@ -2,6 +2,7 @@ class User < ApplicationRecord
   authenticates_with_sorcery!
 
   has_many :scenarios, dependent: :destroy
+  has_many :scenario_generation_logs, dependent: :destroy
 
   SCENARIO_GENERATION_LIMIT = 3
 

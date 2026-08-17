@@ -1,6 +1,8 @@
 class Scenario < ApplicationRecord
   belongs_to :user
 
+  has_many :scenario_generation_logs, dependent: :nullify
+
   enum :generation_status,
       {
         generating: "generating",

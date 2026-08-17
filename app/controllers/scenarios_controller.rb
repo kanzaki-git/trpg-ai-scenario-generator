@@ -44,6 +44,13 @@ class ScenariosController < ApplicationController
 
       @generation_reserved = true
 
+      @generation_log = current_user.scenario_generation_logs.create!(
+        scenario: @scenario,
+        status: :processing,
+        openai_model: ScenarioGenerator::MODEL,
+        started_at: Time.current
+      )
+
       background_response = ScenarioGenerator.new(
         scenario: @scenario
       ).start_background
@@ -52,13 +59,25 @@ class ScenariosController < ApplicationController
         openai_response_id: background_response.id
       )
 
+      @generation_log.update!(
+        openai_response_id: background_response.id,
+        openai_model: background_response.model,
+        openai_status: background_response.status
+      )
+
       redirect_to generating_scenario_path(@scenario)
     else
       render :new, status: :unprocessable_entity
     end
+
   rescue OpenAI::Errors::APIError,
         ScenarioGenerator::GenerationError => e
     if @generation_reserved
+      @generation_log&.record_failure!(
+        openai_status: :request_error,
+        error: e
+      )
+
       @scenario.destroy! if @scenario.persisted?
       current_user.refund_scenario_generation!
     end
@@ -119,7 +138,8 @@ class ScenariosController < ApplicationController
         )
       when :failed, :incomplete, :cancelled
         fail_background_generation(
-          openai_status: openai_response.status
+          openai_status: openai_response.status,
+          openai_response: openai_response
         )
       end
     end
@@ -144,7 +164,8 @@ class ScenariosController < ApplicationController
     )
 
     fail_background_generation(
-      openai_status: :request_error
+      openai_status: :request_error,
+      error: e
     )
 
     render json: {
@@ -170,10 +191,22 @@ class ScenariosController < ApplicationController
       @scenario.update!(
         generation_status: :completed
       )
+
+      generation_log = @scenario.scenario_generation_logs.find_by(
+        openai_response_id: openai_response.id
+      )
+
+      generation_log&.record_completion!(
+        openai_response
+      )
     end
   end
 
-  def fail_background_generation(openai_status:)
+  def fail_background_generation(
+    openai_status:,
+    openai_response: nil,
+    error: nil
+  )
     @scenario.with_lock do
       next unless @scenario.generating?
 
@@ -181,6 +214,16 @@ class ScenariosController < ApplicationController
         "OpenAI Background generation failed: " \
         "scenario_id=#{@scenario.id} " \
         "status=#{openai_status}"
+      )
+
+      generation_log = @scenario.scenario_generation_logs.find_by(
+        openai_response_id: @scenario.openai_response_id
+      )
+
+      generation_log&.record_failure!(
+        openai_status: openai_status,
+        openai_response: openai_response,
+        error: error
       )
 
       @scenario.update!(
