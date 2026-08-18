@@ -222,10 +222,11 @@ GEM
       rack (>= 1.2, < 4)
       snaky_hash (~> 2.0, >= 2.0.6)
       version_gem (~> 1.1, >= 1.1.12)
-    openai (0.68.0)
+    openai (0.79.0)
       base64
       cgi
-      connection_pool
+      connection_pool (>= 2.2.3)
+      logger
     ostruct (0.6.3)
     parallel (2.1.0)
     parser (3.3.11.1)
@@ -410,7 +411,7 @@ DEPENDENCIES
   jbuilder
   kamal
   minitest-mock (~> 5.27)
-  openai (~> 0.68.0)
+  openai (~> 0.79.0)
   pg (~> 1.1)
   propshaft
   puma (>= 5.0)
