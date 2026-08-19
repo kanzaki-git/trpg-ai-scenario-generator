@@ -108,7 +108,15 @@ class ScenariosController < ApplicationController
 
   def materials; end
 
-  def scenes; end
+  def scenes
+    @scenario_scenes = @scenario.scenario_scenes
+      .includes(
+        :scenario_clues,
+        :scenario_events,
+        scenario_scene_npcs: :scenario_npc
+      )
+      .order(:position)
+  end
 
   def conclusion; end
 
