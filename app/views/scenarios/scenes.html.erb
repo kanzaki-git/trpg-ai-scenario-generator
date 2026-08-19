@@ -9,12 +9,12 @@
 
         <div class="d-flex flex-wrap gap-2 mt-3">
           <span class="badge rounded-pill text-bg-secondary px-3 py-2">
-            全<%= @scenario.scenario_scenes.count %>シーン
+            全<%= @scenario_scenes.size %>シーン
           </span>
 
           <span class="badge rounded-pill text-bg-info px-3 py-2">
             想定時間：
-            <%= @scenario.scenario_scenes.sum(:estimated_time) %>分
+            <%= @scenario_scenes.sum { |scene| scene.estimated_time.to_i } %>分
           </span>
         </div>
       </header>
@@ -63,9 +63,8 @@
       <% end %>
 
       <main>
-        <% if @scenario.scenario_scenes.any? %>
-          <% @scenario.scenario_scenes.order(:position)
-                      .each_with_index do |scene, scene_index| %>
+        <% if @scenario_scenes.any? %>
+          <% @scenario_scenes.each_with_index do |scene, scene_index| %>
             <details
               class="card border-0 shadow-sm mb-4"
               <%= "open" if scene_index.zero? %>

@@ -19,16 +19,12 @@
           style="cursor: pointer;"
         >
           このシーンに登場する人物
-          （<%= scene.scenario_scene_npcs.count %>人）
+          （<%= scene.scenario_scene_npcs.size %>人）
         </summary>
 
         <div class="border-top p-4">
           <% scene.scenario_scene_npcs
-                  .includes(:scenario_npc)
-                  .sort_by {
-                    |scene_npc|
-                    scene_npc.scenario_npc.position
-                  }
+                  .sort_by { |scene_npc| scene_npc.scenario_npc.position }
                   .each do |scene_npc| %>
             <article class="mb-4">
               <h4 class="h6 fw-bold mb-2">
@@ -54,11 +50,13 @@
           style="cursor: pointer;"
         >
           このシーンで入手できる手がかり
-          （<%= scene.scenario_clues.count %>件）
+          （<%= scene.scenario_clues.size %>件）
         </summary>
 
         <div class="border-top p-4">
-          <% scene.scenario_clues.order(:position).each do |clue| %>
+          <% scene.scenario_clues
+                  .sort_by { |clue| clue.position.to_i }
+                  .each do |clue| %>
             <div class="alert alert-primary mb-3">
               <%= simple_format(
                     clue.content,
@@ -77,11 +75,13 @@
           style="cursor: pointer;"
         >
           このシーンで発生するイベント
-          （<%= scene.scenario_events.count %>件）
+          （<%= scene.scenario_events.size %>件）
         </summary>
 
         <div class="border-top p-4">
-          <% scene.scenario_events.order(:position).each do |event| %>
+          <% scene.scenario_events
+                  .sort_by { |event| event.position.to_i }
+                  .each do |event| %>
             <article class="mb-4">
               <div class="lh-lg text-break">
                 <%= simple_format(
