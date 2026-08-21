@@ -42,28 +42,10 @@ class ScenariosController < ApplicationController
         return
       end
 
-      @generation_reserved = true
-
-      @generation_log = current_user.scenario_generation_logs.create!(
-        scenario: @scenario,
-        status: :processing,
-        openai_model: ScenarioGenerator::MODEL,
-        started_at: Time.current
-      )
-
-      background_response = ScenarioGenerator.new(
+      ScenarioGenerationStarter.new(
+        user: current_user,
         scenario: @scenario
-      ).start_background
-
-      @scenario.update!(
-        openai_response_id: background_response.id
-      )
-
-      @generation_log.update!(
-        openai_response_id: background_response.id,
-        openai_model: background_response.model,
-        openai_status: background_response.status
-      )
+      ).call
 
       redirect_to generating_scenario_path(@scenario)
     else
@@ -72,16 +54,6 @@ class ScenariosController < ApplicationController
 
   rescue OpenAI::Errors::APIError,
         ScenarioGenerator::GenerationError => e
-    if @generation_reserved
-      @generation_log&.record_failure!(
-        openai_status: :request_error,
-        error: e
-      )
-
-      @scenario.destroy! if @scenario.persisted?
-      current_user.refund_scenario_generation!
-    end
-
     Rails.logger.error(
       "シナリオ生成に失敗しました: #{e.class} #{e.message}"
     )

@@ -70,17 +70,15 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
       ->(scenario:) { fake_generator }
     ) do
       assert_difference("Scenario.count", 1) do
-        assert_difference("ScenarioGenerationLog.count", 1) do
-          post scenarios_url, params: {
-            scenario: {
-              genre: "ホラー",
-              world_setting: "現代日本",
-              tone: "ダーク",
-              player_count: 2,
-              play_time: 30
-            }
+        post scenarios_url, params: {
+          scenario: {
+            genre: "ホラー",
+            world_setting: "現代日本",
+            tone: "ダーク",
+            player_count: 2,
+            play_time: 30
           }
-        end
+        }
       end
     end
 
@@ -90,15 +88,6 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
       openai_response_id: "resp_test_background"
     )
 
-    generation_log = @user.scenario_generation_logs.find_by!(
-      openai_response_id: "resp_test_background"
-    )
-
-    assert generation_log.processing?
-    assert_equal created_scenario, generation_log.scenario
-    assert_equal "gpt-5.2", generation_log.openai_model
-    assert_equal "in_progress", generation_log.openai_status
-    assert generation_log.started_at.present?
     assert created_scenario.generating?
     assert_redirected_to generating_scenario_path(created_scenario)
     assert_equal 1, @user.reload.scenario_generation_count
@@ -163,19 +152,6 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :service_unavailable
     assert_equal 0, @user.reload.scenario_generation_count
-
-    generation_log = @user.scenario_generation_logs
-      .order(created_at: :desc)
-      .first
-
-    assert generation_log.failed?
-    assert_nil generation_log.scenario_id
-    assert_equal "request_error", generation_log.openai_status
-    assert_equal "ScenarioGenerator::GenerationError",
-                generation_log.error_class
-    assert_equal "テスト用の生成エラー",
-                generation_log.error_message
-    assert generation_log.finished_at.present?
 
     assert_select ".alert-danger",
                   text: /シナリオの生成に失敗しました/
