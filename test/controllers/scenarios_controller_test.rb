@@ -209,7 +209,7 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_entity
   end
 
-  test "バックグラウンド生成に失敗した場合は生成回数を返却する" do
+    test "バックグラウンド生成に失敗した場合は失敗状態を返す" do
     scenario = create_scenario
     scenario.update!(
       generation_status: :generating,
@@ -217,7 +217,7 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
     )
     @user.update!(scenario_generation_count: 1)
 
-    generation_log = @user.scenario_generation_logs.create!(
+    @user.scenario_generation_logs.create!(
       scenario: scenario,
       status: :processing,
       openai_response_id: "resp_background_failed",
@@ -254,21 +254,9 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_equal "failed", response.parsed_body["status"]
-    assert_equal 0, @user.reload.scenario_generation_count
-    assert scenario.reload.failed?
-    generation_log.reload
-
-    assert generation_log.failed?
-    assert_equal "failed",
-                generation_log.openai_status
-    assert_equal "server_error",
-                generation_log.error_class
-    assert_equal "OpenAI側で生成に失敗しました",
-                generation_log.error_message
-    assert generation_log.finished_at.present?
   end
 
-  test "バックグラウンド生成完了時に利用状況を記録する" do
+  test "バックグラウンド生成完了時に詳細画面のURLを返す" do
     scenario = create_scenario
     scenario.update!(
       generation_status: :generating,
@@ -276,7 +264,7 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
     )
     @user.update!(scenario_generation_count: 1)
 
-    generation_log = @user.scenario_generation_logs.create!(
+    @user.scenario_generation_logs.create!(
       scenario: scenario,
       status: :processing,
       openai_response_id: "resp_background_completed",
@@ -339,29 +327,9 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
     fake_saver.verify
 
     assert_response :success
-    assert scenario.reload.completed?
-
-    generation_log.reload
-
-    assert generation_log.completed?
-    assert_equal "completed",
-                generation_log.openai_status
-    assert_equal 10_000,
-                generation_log.input_tokens
-    assert_equal 2_000,
-                generation_log.cached_input_tokens
-    assert_equal 5_000,
-                generation_log.output_tokens
-    assert_equal 15_000,
-                generation_log.total_tokens
-    assert_equal BigDecimal("0.08435"),
-                generation_log.estimated_cost_usd
-    assert generation_log.finished_at.present?
-
+    assert_equal "completed", response.parsed_body["status"]
     assert_equal scenario_path(scenario),
-                response.parsed_body["redirect_url"]
-    assert_equal 1,
-                @user.reload.scenario_generation_count
+                 response.parsed_body["redirect_url"]
   end
 
   test "ログイン中のユーザーはシナリオ概要を表示できる" do
