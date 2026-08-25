@@ -80,6 +80,21 @@ class UserTest < ActiveSupport::TestCase
     assert_equal 0, @user.reload.scenario_generation_count
   end
 
+  test "未入力項目のエラーメッセージが日本語で表示される" do
+    user = User.new
+
+    user.valid?
+
+    assert_includes user.errors.full_messages,
+                    "名前を入力してください"
+    assert_includes user.errors.full_messages,
+                    "メールアドレスを入力してください"
+    assert_includes user.errors.full_messages,
+                    "パスワードは3文字以上で入力してください"
+    assert_includes user.errors.full_messages,
+                    "パスワード確認を入力してください"
+  end
+
   private
 
   def build_scenario

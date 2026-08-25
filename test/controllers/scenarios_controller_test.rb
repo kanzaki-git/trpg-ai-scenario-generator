@@ -52,6 +52,29 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
     )
   end
 
+  test "生成状況の確認に失敗した場合の案内が生成中画面に用意されている" do
+    scenario = create_scenario
+    scenario.update!(generation_status: :generating)
+
+    get generating_scenario_url(scenario)
+
+    assert_response :success
+
+    assert_select(
+      '[data-scenario-generation-polling-target="communicationFailure"]'
+    ) do
+      assert_select "h1", text: "生成状況を確認できませんでした"
+
+      assert_select(
+        'button[data-action="scenario-generation-polling#reload"]',
+        text: "画面を再読み込み"
+      )
+
+      assert_select "a[href=?]", scenarios_path,
+                    text: "シナリオ一覧へ戻る"
+    end
+  end
+
   test "ログイン中のユーザーはシナリオ生成を開始できる" do
     background_response = OpenStruct.new(
       id: "resp_test_background",

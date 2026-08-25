@@ -1,0 +1,21 @@
+ja:
+  activerecord:
+    models:
+      user: ユーザー
+      scenario: シナリオ
+
+    attributes:
+      user:
+        name: 名前
+        email: メールアドレス
+        password: パスワード
+        password_confirmation: パスワード確認
+
+      scenario:
+        user: ユーザー
+        genre: ジャンル
+        world_setting: 世界観
+        tone: 雰囲気
+        player_count: プレイヤー人数
+        play_time: プレイ時間
+        generation_status: 生成状態
