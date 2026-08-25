@@ -3,7 +3,8 @@ import { Controller } from "@hotwired/stimulus"
 export default class extends Controller {
   static targets = [
     "loading",
-    "failure"
+    "failure",
+    "communicationFailure"
   ]
 
   static values = {
@@ -12,6 +13,7 @@ export default class extends Controller {
   }
 
   connect() {
+    this.consecutiveFailureCount = 0
     this.checkStatus()
   }
 
@@ -33,6 +35,8 @@ export default class extends Controller {
 
       const data = await response.json()
 
+      this.consecutiveFailureCount = 0
+
       if (data.status === "completed" && data.redirect_url) {
         window.location.assign(data.redirect_url)
         return
@@ -44,6 +48,12 @@ export default class extends Controller {
       }
     } catch (error) {
       console.error(error)
+      this.consecutiveFailureCount += 1
+
+      if (this.consecutiveFailureCount >= 3) {
+        this.showCommunicationFailure()
+        return
+      }
     }
 
     this.pollingTimer = setTimeout(
@@ -55,5 +65,14 @@ export default class extends Controller {
   showFailure() {
     this.loadingTarget.classList.add("d-none")
     this.failureTarget.classList.remove("d-none")
+  }
+
+  showCommunicationFailure() {
+    this.loadingTarget.classList.add("d-none")
+    this.communicationFailureTarget.classList.remove("d-none")
+  }
+
+  reload() {
+    window.location.reload()
   }
 }

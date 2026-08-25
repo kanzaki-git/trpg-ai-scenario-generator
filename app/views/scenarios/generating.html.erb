@@ -50,6 +50,35 @@
                         new_scenario_path,
                         class: "btn btn-primary" %>
           </div>
+
+          <div
+            class="d-none"
+            role="alert"
+            data-scenario-generation-polling-target="communicationFailure"
+          >
+            <h1 class="h2 fw-bold mb-3">
+              生成状況を確認できませんでした
+            </h1>
+
+            <p class="text-muted mb-4">
+              通信が不安定な可能性があります。生成処理は継続している場合があります。
+              画面を再読み込みして、生成状況をご確認ください。
+            </p>
+
+            <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center">
+              <button
+                type="button"
+                class="btn btn-primary"
+                data-action="scenario-generation-polling#reload"
+              >
+                画面を再読み込み
+              </button>
+
+              <%= link_to "シナリオ一覧へ戻る",
+                          scenarios_path,
+                          class: "btn btn-outline-secondary" %>
+            </div>
+          </div>
         </div>
       </div>
     </div>
