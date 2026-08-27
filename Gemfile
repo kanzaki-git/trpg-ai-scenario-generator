@@ -75,3 +75,5 @@ end
 gem "openai", "~> 0.68.0"
 
 gem "dotenv-rails", "~> 3.2", groups: [ :development, :test ]
+
+gem "brevo", "~> 4.0"
