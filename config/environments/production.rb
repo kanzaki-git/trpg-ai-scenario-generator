@@ -54,7 +54,7 @@ Rails.application.configure do
   config.action_mailer.perform_deliveries = true
   config.action_mailer.raise_delivery_errors = true
   config.action_mailer.default_url_options = {
-    host: ENV.fetch("APP_HOST"),
+    host: ENV.fetch("APP_HOST", "localhost"),
     protocol: "https"
   }
 
