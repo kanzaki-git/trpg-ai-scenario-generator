@@ -1,6 +1,8 @@
 Rails.application.routes.draw do
   root "homes#top"
 
+  get "terms", to: "terms#show", as: :terms
+
   resources :users, only: %i[new create]
   resources :password_resets, only: %i[new create edit update]
   resources :scenarios, only: %i[index new create show destroy] do
