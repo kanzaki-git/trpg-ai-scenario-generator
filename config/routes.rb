@@ -2,6 +2,7 @@ Rails.application.routes.draw do
   root "homes#top"
 
   get "terms", to: "terms#show", as: :terms
+  get "privacy_policy", to: "privacy_policies#show", as: :privacy_policy
 
   resources :users, only: %i[new create]
   resources :password_resets, only: %i[new create edit update]
