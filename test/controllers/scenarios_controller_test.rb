@@ -52,6 +52,41 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
     )
   end
 
+  test "生成画面に利用上限と残り回数が表示され生成ボタンが有効になる" do
+    @user.update!(scenario_generation_count: 1)
+
+    get new_scenario_url
+
+    assert_response :success
+
+    assert_select ".alert-info",
+                  text: /累計\s*#{User::SCENARIO_GENERATION_LIMIT}回/
+
+    assert_select ".alert-info p",
+                  text: "残り生成回数：#{User::SCENARIO_GENERATION_LIMIT - 1}回"
+
+    assert_select 'input[type="submit"]:not([disabled])', count: 1
+    assert_select ".alert-warning", count: 0
+  end
+
+  test "上限に達すると残り0回と案内が表示され生成ボタンが無効になる" do
+    @user.update!(
+      scenario_generation_count: User::SCENARIO_GENERATION_LIMIT
+    )
+
+    get new_scenario_url
+
+    assert_response :success
+
+    assert_select ".alert-info p",
+                  text: "残り生成回数：0回"
+
+    assert_select ".alert-warning",
+                  text: /利用上限に達したため、新しいシナリオは生成できません/
+
+    assert_select 'input[type="submit"][disabled]', count: 1
+  end
+
   test "生成状況の確認に失敗した場合の案内が生成中画面に用意されている" do
     scenario = create_scenario
     scenario.update!(generation_status: :generating)

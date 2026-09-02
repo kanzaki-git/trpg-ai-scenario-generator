@@ -14,6 +14,34 @@ class UserTest < ActiveSupport::TestCase
     assert_equal 0, @user.scenario_generation_count
   end
 
+  test "未使用の場合は上限回数がそのまま残っている" do
+    assert_equal User::SCENARIO_GENERATION_LIMIT,
+                 @user.remaining_scenario_generation_count
+  end
+
+  test "利用済み回数を上限から引いた回数が残っている" do
+    @user.update!(scenario_generation_count: 1)
+
+    assert_equal User::SCENARIO_GENERATION_LIMIT - 1,
+                 @user.remaining_scenario_generation_count
+  end
+
+  test "生成回数が上限に達した場合は残り回数が0になる" do
+    @user.update!(
+      scenario_generation_count: User::SCENARIO_GENERATION_LIMIT
+    )
+
+    assert_equal 0, @user.remaining_scenario_generation_count
+  end
+
+  test "生成回数が上限を超えていても残り回数は0になる" do
+    @user.update!(
+      scenario_generation_count: User::SCENARIO_GENERATION_LIMIT + 1
+    )
+
+    assert_equal 0, @user.remaining_scenario_generation_count
+  end
+
   test "生成回数が上限未満の場合は生成可能である" do
     @user.update!(scenario_generation_count: 2)
 

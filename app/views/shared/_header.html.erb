@@ -1,10 +1,10 @@
 <nav class="app-header navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container">
-    <% logo_path = logged_in? ? scenarios_path : root_path %>
-
     <%= link_to "TRPG AI Scenario Generator",
-                logo_path,
-                class: "navbar-brand" %>
+                root_path,
+                class: "btn btn-outline-light px-3",
+                title: "トップページへ",
+                aria: { label: "TRPG AI Scenario Generator：トップページへ" } %>
 
     <div class="ms-auto">
       <% if logged_in? %>
