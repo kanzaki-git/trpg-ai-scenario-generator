@@ -18,13 +18,13 @@
             </h2>
 
             <span class="badge text-bg-secondary">
-              <%= @scenario.scenario_npcs.count %>人
+              <%= @scenario_npcs.size %>人
             </span>
           </div>
 
-          <% if @scenario.scenario_npcs.any? %>
+          <% if @scenario_npcs.any? %>
             <div class="row g-4">
-              <% @scenario.scenario_npcs.order(:position).each do |npc| %>
+              <% @scenario_npcs.each do |npc| %>
                 <div class="col-12">
                   <article class="card shadow-sm h-100">
                     <div class="card-body p-4">
@@ -44,6 +44,32 @@
                                   class: "mb-0"
                                 ) %>
                           </div>
+
+                          <% if npc.initial_location.present? ||
+                                npc.initial_activity.present? %>
+                            <dl class="border-top pt-3 mt-3 mb-0">
+                              <% if npc.initial_location.present? %>
+                                <dt class="fw-bold mb-1">
+                                  初登場時の居場所
+                                </dt>
+                                <dd class="mb-3 text-break">
+                                  <%= npc.initial_location.name %>
+                                </dd>
+                              <% end %>
+
+                              <% if npc.initial_activity.present? %>
+                                <dt class="fw-bold mb-1">
+                                  初登場時の様子
+                                </dt>
+                                <dd class="mb-0 lh-lg text-break">
+                                  <%= simple_format(
+                                        npc.initial_activity,
+                                        class: "mb-0"
+                                      ) %>
+                                </dd>
+                              <% end %>
+                            </dl>
+                          <% end %>
                         </div>
                       </div>
                     </div>

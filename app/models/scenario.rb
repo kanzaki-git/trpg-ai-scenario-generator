@@ -16,6 +16,7 @@ class Scenario < ApplicationRecord
   has_many :scenario_clues, dependent: :destroy
   has_many :scenario_events, dependent: :destroy
   has_many :scenario_endings, dependent: :destroy
+  has_many :scenario_locations, dependent: :destroy
 
   validates :genre, presence: true
   validates :world_setting, presence: true

@@ -1,7 +1,15 @@
 class ScenarioGenerationSchema < OpenAI::BaseModel
+  class Location < OpenAI::BaseModel
+    required :name, String
+    required :description, String
+    required :position, Integer
+  end
+
   class Npc < OpenAI::BaseModel
     required :name, String
     required :description, String
+    required :initial_location_position, Integer
+    required :initial_activity, String
     required :position, Integer
   end
 
@@ -18,7 +26,19 @@ class ScenarioGenerationSchema < OpenAI::BaseModel
 
   class SceneNpc < OpenAI::BaseModel
     required :npc_position, Integer
+    required :location_position, Integer
+    required :activity, String
+    required :appearance_condition, String
     required :reaction, String
+  end
+
+  class ExplorationCue < OpenAI::BaseModel
+    required :source_location_position, Integer
+    required :target_location_position, Integer
+    required :npc_position, Integer, nil?: true
+    required :trigger_condition, String
+    required :read_aloud_text, String
+    required :position, Integer
   end
 
   class InvestigationOption < OpenAI::BaseModel
@@ -38,7 +58,9 @@ class ScenarioGenerationSchema < OpenAI::BaseModel
     required :trigger_condition, String
     required :transition_condition, String
     required :hint, String
+    required :location_positions, OpenAI::ArrayOf[Integer]
     required :npc_appearances, OpenAI::ArrayOf[SceneNpc]
+    required :exploration_cues, OpenAI::ArrayOf[ExplorationCue]
     required :clue_positions, OpenAI::ArrayOf[Integer]
     required :event_positions, OpenAI::ArrayOf[Integer]
     required :position, Integer
@@ -54,6 +76,7 @@ class ScenarioGenerationSchema < OpenAI::BaseModel
   required :story_outline, String
   required :introduction, String
   required :truth, String
+  required :locations, OpenAI::ArrayOf[Location]
   required :npcs, OpenAI::ArrayOf[Npc]
   required :clues, OpenAI::ArrayOf[Clue]
   required :events, OpenAI::ArrayOf[Event]

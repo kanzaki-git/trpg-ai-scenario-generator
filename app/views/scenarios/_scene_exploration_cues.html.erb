@@ -1,0 +1,71 @@
+<% if scene.scenario_exploration_cues.any? %>
+  <section class="mb-5 scene-exploration-cues">
+    <h3 class="h5 fw-bold mb-2">
+      探索につながる会話・描写
+    </h3>
+
+    <p class="text-body-secondary mb-3">
+      プレイヤーが訪れた場所や行動に合わせて、
+      提示する情報を選んでください。
+      すべてを一度に読み上げる必要はありません。
+    </p>
+
+    <div class="d-grid gap-3">
+      <% scene.scenario_exploration_cues
+              .sort_by { |cue| cue.position.to_i }
+              .each do |cue| %>
+        <article class="card">
+          <div class="card-header">
+            <h4 class="h6 fw-bold mb-0">
+              <% if cue.scenario_npc.present? %>
+                <%= cue.scenario_npc.name %>の台詞
+              <% else %>
+                周囲の描写
+              <% end %>
+            </h4>
+          </div>
+
+          <div class="card-body p-4">
+            <dl class="row mb-3">
+              <dt class="col-sm-4">情報を得る場所</dt>
+              <dd class="col-sm-8 text-break">
+                <%= cue.source_location.name %>
+              </dd>
+
+              <dt class="col-sm-4">気になる探索先</dt>
+              <dd class="col-sm-8 text-break">
+                <%= cue.target_location.name %>
+              </dd>
+            </dl>
+
+            <div class="bg-body-tertiary rounded-3 p-3 mb-3">
+              <h5 class="h6 fw-bold mb-2">
+                ゲームマスター向け：提示するタイミング
+              </h5>
+
+              <div class="lh-lg text-break">
+                <%= simple_format(
+                      cue.trigger_condition,
+                      class: "mb-0"
+                    ) %>
+              </div>
+            </div>
+
+            <div class="alert alert-info mb-0 exploration-read-aloud">
+              <h5 class="h6 fw-bold mb-2">
+                プレイヤーへ読み上げる文章
+              </h5>
+
+              <div class="lh-lg text-break">
+                <%= simple_format(
+                      cue.read_aloud_text,
+                      class: "mb-0"
+                    ) %>
+              </div>
+            </div>
+          </div>
+        </article>
+      <% end %>
+    </div>
+  </section>
+<% end %>
