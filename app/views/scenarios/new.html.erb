@@ -9,6 +9,24 @@
             条件を選択すると、AIがTRPGシナリオを生成します。
           </p>
 
+          <div class="alert alert-info mb-4">
+            <p class="mb-2">
+              シナリオ生成は、1アカウントにつき累計
+              <%= User::SCENARIO_GENERATION_LIMIT %>回まで利用できます。
+            </p>
+
+            <p class="fw-bold mb-0">
+              残り生成回数：<%= current_user.remaining_scenario_generation_count %>回
+            </p>
+          </div>
+
+          <% unless current_user.scenario_generation_available? %>
+            <div class="alert alert-warning mb-4">
+              利用上限に達したため、新しいシナリオは生成できません。
+              作成済みのシナリオは引き続き閲覧できます。
+            </div>
+          <% end %>
+
           <%= form_with model: @scenario,
                         local: true do |form| %>
             <% if @scenario.errors.any? %>
@@ -86,6 +104,7 @@
             <div class="d-grid">
               <%= form.submit "シナリオを生成する",
                               class: "btn btn-primary btn-lg",
+                              disabled: !current_user.scenario_generation_available?,
                               data: {
                                 turbo_submits_with: "シナリオを生成しています…"
                               } %>

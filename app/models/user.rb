@@ -10,6 +10,10 @@ class User < ApplicationRecord
     scenario_generation_count < SCENARIO_GENERATION_LIMIT
   end
 
+  def remaining_scenario_generation_count
+    [ SCENARIO_GENERATION_LIMIT - scenario_generation_count, 0 ].max
+  end
+
   def reserve_scenario_generation!(scenario)
     with_lock do
       return :already_generating if scenarios.generating.exists?

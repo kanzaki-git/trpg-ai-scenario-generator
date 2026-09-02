@@ -11,8 +11,29 @@
     </p>
 
     <div class="mt-5 text-center">
+      <div class="alert alert-info mb-4">
+        <p class="mb-0">
+          シナリオ生成は、1アカウントにつき累計
+          <%= User::SCENARIO_GENERATION_LIMIT %>回まで利用できます。
+        </p>
+
+        <% if logged_in? %>
+          <p class="fw-bold mt-2 mb-0">
+            残り生成回数：<%= current_user.remaining_scenario_generation_count %>回
+          </p>
+        <% end %>
+      </div>
+
       <% if logged_in? %>
-        <%= link_to "シナリオを作成する", new_scenario_path, class: "btn btn-primary btn-lg px-5 py-3" %>
+        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+          <%= link_to "シナリオを作成する",
+                      new_scenario_path,
+                      class: "btn btn-primary btn-lg px-5 py-3" %>
+
+          <%= link_to "シナリオ一覧を見る",
+                      scenarios_path,
+                      class: "btn btn-outline-primary btn-lg px-5 py-3" %>
+        </div>
       <% else %>
         <p class="text-muted mb-3">
           シナリオ作成にはログインが必要です。

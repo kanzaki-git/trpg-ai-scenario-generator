@@ -16,6 +16,24 @@ class UserSessionsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "ログインに成功するとトップページへ移動する" do
+    post login_url, params: {
+      email: @user.email,
+      password: "password"
+    }
+
+    assert_redirected_to root_url
+    assert_equal "ログインしました", flash[:notice]
+
+    follow_redirect!
+
+    assert_response :success
+    assert_select "a[href=?]", scenarios_path,
+                  text: "シナリオ一覧を見る"
+    assert_select "a[href=?]", new_scenario_path,
+                  text: "シナリオを作成する"
+  end
+
   test "誤ったパスワードの場合はエラーメッセージを表示する" do
     post login_url, params: {
       email: @user.email,
