@@ -177,12 +177,17 @@ class ScenarioGenerator
 
       【positionのルール】
 
-      ・登場人物、手がかり、イベント、シーン、エンディングには、
-        それぞれ1から始まるpositionを設定してください
+      ・場所、登場人物、手がかり、イベント、シーン、エンディングには、
+        種類ごとに1から始まるpositionを設定してください
 
-      ・同じ種類のデータ内でpositionを重複させないでください
+      ・それぞれの一覧内でpositionを重複させず、
+        途中の番号を飛ばさずに設定してください
 
-      ・途中の番号を飛ばさず、表示順に設定してください
+      ・探索のきっかけのpositionは、シーンごとに1から始め、
+        同じシーン内で重複させないでください
+
+      ・関連付けには、実際に生成した対象のpositionを使用してください
+        データベースのIDを作成する必要はありません
 
       【シーン全体のルール】
 
@@ -446,6 +451,99 @@ class ScenarioGenerator
 
       ・該当する要素がない場合は、空の配列にしてください
 
+            【共通の場所データ】
+
+      ・locationsには、シナリオで使用する場所をまとめてください
+        部屋、村、森、遺跡など、ジャンルに合う場所を設定してください
+
+      ・同じ場所を別々のデータとして重複して作成しないでください
+        NPCの配置、探索先、シーン内の文章では同じ場所名を使ってください
+
+      ・nameには場所の名前、descriptionには基本的な外観や特徴を
+        簡潔に記載してください
+        descriptionには、未発見の手がかりや真相を含めないでください
+
+      ・各シーンのlocation_positionsには、
+        その場面でプレイヤーが活動する場所のpositionを設定してください
+        一つのシーンで複数の場所を扱っても構いません
+
+      ・場所同士の位置関係や移動経路が、会話や描写と矛盾しないようにしてください
+
+      【NPCの初期配置】
+
+      ・各NPCのinitial_location_positionには、
+        初登場時の基本の居場所となる場所のpositionを設定してください
+
+      ・initial_activityには、そこで何をしているか、
+        外から見て分かる様子を1〜2文で記載してください
+
+      ・全NPCを最初のシーンから登場させる必要はありません
+        npc_appearancesには、そのシーンに実際に登場するNPCだけを含めてください
+
+      【シーンごとのNPC配置】
+
+      ・npc_appearancesのlocation_positionには、
+        そのシーンでのNPCの居場所を必ず設定してください
+        初期位置から変わらない場合も、その場所のpositionを設定してください
+
+      ・配置場所は、そのシーンのlocation_positionsに含めてください
+
+      ・activityには、その場面での行動や様子を簡潔に記載してください
+
+      ・appearance_conditionには、必要な場合だけ登場や移動の条件を記載し、
+        特別な条件がなければ空文字にしてください
+
+      ・細かな行動予定表は作らず、GMが登場させるための目安にしてください
+        前の場面での移動や出来事と、後の場面の配置を整合させてください
+
+      ・reactionにはGMが演じるための目的、態度、反応を記載してください
+        探索先を知らせる具体的な台詞は、exploration_cuesにまとめてください
+
+      【探索のきっかけ】
+
+      ・各シーンのexploration_cuesには、プレイヤーが探索先を知り、
+        調べたい理由を持てるNPCの台詞や周囲の描写を設定してください
+
+      ・source_location_positionには情報を得る場所、
+        target_location_positionには気になる探索先のpositionを設定してください
+
+      ・情報を得る場所は、そのシーンのlocation_positionsに含めてください
+        探索先は、後のシーンで訪れる場所でも構いません
+
+      ・NPCの台詞の場合、npc_positionに話すNPCのpositionを設定してください
+        そのNPCは、そのシーンのnpc_appearancesに含まれ、
+        情報を得る場所と同じ場所にいる必要があります
+
+      ・音、痕跡、書類、出来事などによるきっかけは、
+        npc_positionをnullにしてください
+
+      ・trigger_conditionには、GMが情報を提示するタイミングを
+        「その場所に入ったとき」「昨夜について尋ねられたとき」など、
+        短く具体的に記載してください
+
+      ・read_aloud_textには、プレイヤーへそのまま伝えられる
+        台詞または描写を1〜2文で記載してください
+        探索先の名前と、そこが気になる理由を含めてください
+
+      ・read_aloud_textにはGMへの指示や、その場面でまだ公開しない
+        真相、犯人、NPCの秘密を混ぜないでください
+
+      ・重要な探索先には、特定のNPCとの会話をしなくても
+        気づける別のきっかけを必ず用意してください
+        代替のきっかけは、そのNPCとの会話や、その会話でしか得られない
+        情報を前提にしないでください
+
+      ・未訪問の探索先を知らせるきっかけは、
+        その探索先へ行く前に得られるようにしてください
+        行き先を知るために、先にその行き先へ到着する必要がある構成は避けてください
+
+      ・プレイヤーが誰に話すか、どこを調べるかを選べる余地を残してください
+        行き先を命令する文章ではなく、興味を持てる情報を提示してください
+
+      ・重要な探索先を中心に必要なきっかけを簡潔に用意し、
+        同じ情報を場面ごとに繰り返さないでください
+        きっかけが不要なシーンでは、exploration_cuesを空の配列にしてください
+
       定義された構造化出力の形式に従って、
       すべての項目を生成してください。
     PROMPT
@@ -454,6 +552,10 @@ class ScenarioGenerator
   def build_generation_result(generation_data)
     ScenarioGenerationSchema.new(
       **generation_data.merge(
+        locations: build_collection(
+          generation_data.fetch(:locations),
+          ScenarioGenerationSchema::Location
+        ),
         npcs: build_collection(
           generation_data.fetch(:npcs),
           ScenarioGenerationSchema::Npc
@@ -487,7 +589,10 @@ class ScenarioGenerator
         npc_appearances: build_collection(
           scene_data.fetch(:npc_appearances),
           ScenarioGenerationSchema::SceneNpc
-        )
+        ),
+        exploration_cues: scene_data.fetch(:exploration_cues).map do |cue_data|
+          build_exploration_cue(cue_data)
+        end
       )
     )
   end
@@ -496,6 +601,19 @@ class ScenarioGenerator
     collection.map do |attributes|
       model_class.new(**attributes)
     end
+  end
+
+  def build_exploration_cue(cue_data)
+    # openai 0.68.0では、newへ明示的にnilを渡すと読み取り時に
+    # 変換エラーになるため、NPCなしの場合はこの項目を渡さない。
+    attributes =
+      if cue_data.fetch(:npc_position).nil?
+        cue_data.except(:npc_position)
+      else
+        cue_data
+      end
+
+    ScenarioGenerationSchema::ExplorationCue.new(**attributes)
   end
 
   def extract_result(response)

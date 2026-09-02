@@ -8,7 +8,8 @@ class ScenarioGenerationSaver
     Scenario.transaction do
       save_scenario
 
-      npcs_by_position = save_npcs
+      locations_by_position = save_locations
+      npcs_by_position = save_npcs(locations_by_position)
       clues_by_position = save_clues
       events_by_position = save_events
       scenes_by_position = save_scenes
@@ -17,6 +18,7 @@ class ScenarioGenerationSaver
 
       save_scene_relations(
         scenes_by_position: scenes_by_position,
+        locations_by_position: locations_by_position,
         npcs_by_position: npcs_by_position,
         clues_by_position: clues_by_position,
         events_by_position: events_by_position
@@ -42,11 +44,27 @@ class ScenarioGenerationSaver
     scenario.save!
   end
 
-  def save_npcs
+  def save_locations
+    generation_result.locations.each_with_object({}) do |location_data, records|
+      location = scenario.scenario_locations.create!(
+        name: location_data.name,
+        description: location_data.description,
+        position: location_data.position
+      )
+
+      records[location_data.position] = location
+    end
+  end
+
+  def save_npcs(locations_by_position)
     generation_result.npcs.each_with_object({}) do |npc_data, records|
       npc = scenario.scenario_npcs.create!(
         name: npc_data.name,
         description: npc_data.description,
+        initial_location: locations_by_position.fetch(
+          npc_data.initial_location_position
+        ),
+        initial_activity: npc_data.initial_activity,
         position: npc_data.position
       )
 
@@ -125,6 +143,7 @@ class ScenarioGenerationSaver
 
   def save_scene_relations(
     scenes_by_position:,
+    locations_by_position:,
     npcs_by_position:,
     clues_by_position:,
     events_by_position:
@@ -133,18 +152,46 @@ class ScenarioGenerationSaver
       scene = scene_information[:record]
       scene_data = scene_information[:generation_data]
 
-      save_scene_npcs(scene, scene_data, npcs_by_position)
+      save_scene_locations(scene, scene_data, locations_by_position)
+      save_scene_npcs(
+        scene,
+        scene_data,
+        npcs_by_position,
+        locations_by_position
+      )
       save_scene_clues(scene, scene_data, clues_by_position)
       save_scene_events(scene, scene_data, events_by_position)
+      save_exploration_cues(
+        scene,
+        scene_data,
+        locations_by_position,
+        npcs_by_position
+      )
     end
   end
 
-  def save_scene_npcs(scene, scene_data, npcs_by_position)
-    scene_data.npc_appearances.each do |appearance|
-      npc = npcs_by_position.fetch(appearance.npc_position)
+  def save_scene_locations(scene, scene_data, locations_by_position)
+    scene_data.location_positions.each do |location_position|
+      scene.scenario_scene_locations.create!(
+        scenario_location: locations_by_position.fetch(location_position)
+      )
+    end
+  end
 
+  def save_scene_npcs(
+    scene,
+    scene_data,
+    npcs_by_position,
+    locations_by_position
+  )
+    scene_data.npc_appearances.each do |appearance|
       scene.scenario_scene_npcs.create!(
-        scenario_npc: npc,
+        scenario_npc: npcs_by_position.fetch(appearance.npc_position),
+        scenario_location: locations_by_position.fetch(
+          appearance.location_position
+        ),
+        activity: appearance.activity,
+        appearance_condition: appearance.appearance_condition,
         reaction: appearance.reaction
       )
     end
@@ -152,20 +199,45 @@ class ScenarioGenerationSaver
 
   def save_scene_clues(scene, scene_data, clues_by_position)
     scene_data.clue_positions.each do |clue_position|
-      clue = clues_by_position.fetch(clue_position)
-
       scene.scenario_scene_clues.create!(
-        scenario_clue: clue
+        scenario_clue: clues_by_position.fetch(clue_position)
       )
     end
   end
 
   def save_scene_events(scene, scene_data, events_by_position)
     scene_data.event_positions.each do |event_position|
-      event = events_by_position.fetch(event_position)
-
       scene.scenario_scene_events.create!(
-        scenario_event: event
+        scenario_event: events_by_position.fetch(event_position)
+      )
+    end
+  end
+
+  def save_exploration_cues(
+    scene,
+    scene_data,
+    locations_by_position,
+    npcs_by_position
+  )
+    scene_data.exploration_cues.each do |cue_data|
+      npc =
+        if cue_data.npc_position.nil?
+          nil
+        else
+          npcs_by_position.fetch(cue_data.npc_position)
+        end
+
+      scene.scenario_exploration_cues.create!(
+        source_location: locations_by_position.fetch(
+          cue_data.source_location_position
+        ),
+        target_location: locations_by_position.fetch(
+          cue_data.target_location_position
+        ),
+        scenario_npc: npc,
+        trigger_condition: cue_data.trigger_condition,
+        read_aloud_text: cue_data.read_aloud_text,
+        position: cue_data.position
       )
     end
   end

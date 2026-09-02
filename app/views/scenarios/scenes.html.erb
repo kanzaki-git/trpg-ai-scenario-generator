@@ -97,6 +97,8 @@
               </summary>
 
               <div class="card-body p-4 p-md-5">
+                <%= render "scene_locations", scene: scene %>
+
                 <% if scene.purpose.present? %>
                   <section class="mb-5">
                     <h3 class="h5 fw-bold mb-3">
@@ -189,6 +191,8 @@
                     </div>
                   </section>
                 <% end %>
+
+                <%= render "scene_exploration_cues", scene: scene %>
 
                 <%= render "scene_choices", scene: scene %>
 

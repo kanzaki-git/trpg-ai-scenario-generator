@@ -457,6 +457,234 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
+  test "準備資料にNPCの初登場時の居場所と様子を表示できる" do
+    scenario = create_scenario
+
+    location = scenario.scenario_locations.create!(
+      name: "玄関ホール",
+      description: "大きな窓のある広いホール。",
+      position: 1
+    )
+
+    scenario.scenario_npcs.create!(
+      name: "管理人",
+      description: "屋敷を管理している人物。",
+      initial_location: location,
+      initial_activity: "窓枠を拭いている",
+      position: 1
+    )
+
+    get materials_scenario_url(scenario)
+
+    assert_response :success
+    assert_select "h3", text: "管理人"
+    assert_select "dt", text: "初登場時の居場所"
+    assert_select "dd", text: "玄関ホール"
+    assert_select "dt", text: "初登場時の様子"
+    assert_select "dd p", text: "窓枠を拭いている"
+  end
+
+  test "初期配置が未設定のNPCも準備資料に表示できる" do
+    scenario = create_scenario
+
+    scenario.scenario_npcs.create!(
+      name: "旅の商人",
+      description: "各地を旅している商人。",
+      position: 1
+    )
+
+    get materials_scenario_url(scenario)
+
+    assert_response :success
+    assert_select "h3", text: "旅の商人"
+    assert_select "p", text: "各地を旅している商人。"
+    assert_select "dt", text: "初登場時の居場所", count: 0
+    assert_select "dt", text: "初登場時の様子", count: 0
+  end
+
+  test "シーン進行にNPCの場面ごとの配置と様子を表示できる" do
+    scenario = create_scenario
+
+    hall = scenario.scenario_locations.create!(
+      name: "玄関ホール",
+      description: "大きな窓のあるホール。",
+      position: 1
+    )
+
+    study = scenario.scenario_locations.create!(
+      name: "書斎",
+      description: "本棚のある部屋。",
+      position: 2
+    )
+
+    npc = scenario.scenario_npcs.create!(
+      name: "管理人",
+      description: "屋敷を管理している人物。",
+      initial_location: hall,
+      initial_activity: "窓枠を拭いている",
+      position: 1
+    )
+
+    scene = scenario.scenario_scenes.create!(
+      title: "書斎の調査",
+      position: 1
+    )
+
+    scene.scenario_scene_locations.create!(
+      scenario_location: study
+    )
+
+    scene.scenario_scene_npcs.create!(
+      scenario_npc: npc,
+      scenario_location: study,
+      activity: "本棚を調べている",
+      appearance_condition: "書斎の物音を聞いて移動した後",
+      reaction: "質問に慎重に答える"
+    )
+
+    get scenes_scenario_url(scenario)
+
+    assert_response :success
+
+    assert_select "article", text: /管理人/ do
+      assert_select "dd", text: "書斎"
+      assert_select "dd", text: "玄関ホール", count: 0
+      assert_select "dd p", text: "本棚を調べている"
+      assert_select "dd p", text: "書斎の物音を聞いて移動した後"
+      assert_select "h5", text: "人物の反応・ゲームマスター向けメモ"
+      assert_select "p", text: "質問に慎重に答える"
+    end
+  end
+
+  test "探索の台詞と描写をGM向け情報と分けて表示できる" do
+    scenario = create_scenario
+
+    hall = scenario.scenario_locations.create!(
+      name: "玄関ホール",
+      description: "大きな窓のある広いホール。",
+      position: 1
+    )
+
+    study = scenario.scenario_locations.create!(
+      name: "書斎",
+      description: "本棚と大きな机がある部屋。",
+      position: 2
+    )
+
+    npc = scenario.scenario_npcs.create!(
+      name: "管理人",
+      description: "屋敷を管理している人物。",
+      initial_location: hall,
+      initial_activity: "窓枠を拭いている",
+      position: 1
+    )
+
+    scene = scenario.scenario_scenes.create!(
+      title: "屋敷の調査",
+      position: 1
+    )
+
+    [ hall, study ].each do |location|
+      scene.scenario_scene_locations.create!(
+        scenario_location: location
+      )
+    end
+
+    gm_note = "管理人は宝石の隠し場所を知っている。"
+
+    scene.scenario_scene_npcs.create!(
+      scenario_npc: npc,
+      scenario_location: hall,
+      activity: "窓枠を拭いている",
+      reaction: gm_note
+    )
+
+    dialogue_timing = "昨夜のことを尋ねられたとき"
+    dialogue_text = "昨夜、書斎から物音がしたんです。"
+    sound_timing = "ホールに入ったとき"
+    sound_text = "書斎の方向から物音が聞こえます。"
+
+    scene.scenario_exploration_cues.create!(
+      source_location: hall,
+      target_location: study,
+      scenario_npc: npc,
+      trigger_condition: dialogue_timing,
+      read_aloud_text: dialogue_text,
+      position: 1
+    )
+
+    scene.scenario_exploration_cues.create!(
+      source_location: hall,
+      target_location: study,
+      trigger_condition: sound_timing,
+      read_aloud_text: sound_text,
+      position: 2
+    )
+
+    get scenes_scenario_url(scenario)
+
+    assert_response :success
+
+    assert_select ".scene-locations" do
+      assert_select "h4", text: "玄関ホール"
+      assert_select "h4", text: "書斎"
+      assert_select "p", text: hall.description
+      assert_select "p", text: study.description
+    end
+
+    assert_select ".scene-exploration-cues" do
+      assert_select "h4", text: "管理人の台詞"
+      assert_select "h4", text: "周囲の描写"
+      assert_select "dd", text: "玄関ホール", count: 2
+      assert_select "dd", text: "書斎", count: 2
+      assert_select "p", text: dialogue_timing
+      assert_select "p", text: sound_timing
+    end
+
+    assert_select "p", text: gm_note
+
+    assert_select ".exploration-read-aloud", count: 2 do |blocks|
+      read_aloud_text = blocks.map(&:text).join("\n")
+
+      assert_includes read_aloud_text, dialogue_text
+      assert_includes read_aloud_text, sound_text
+
+      [ gm_note, dialogue_timing, sound_timing, scenario.truth ].each do |text|
+        assert_not_includes read_aloud_text, text
+      end
+    end
+  end
+
+  test "場所と探索のきっかけが未設定の既存シーンも表示できる" do
+    scenario = create_scenario
+
+    npc = scenario.scenario_npcs.create!(
+      name: "旅の商人",
+      description: "各地を旅している商人。",
+      position: 1
+    )
+
+    scene = scenario.scenario_scenes.create!(
+      title: "商人との出会い",
+      read_aloud_text: "街道で一人の商人に出会いました。",
+      position: 1
+    )
+
+    scene.scenario_scene_npcs.create!(
+      scenario_npc: npc,
+      reaction: "穏やかに質問へ答える"
+    )
+
+    get scenes_scenario_url(scenario)
+
+    assert_response :success
+    assert_select "h4", text: "旅の商人"
+    assert_select "p", text: "街道で一人の商人に出会いました。"
+    assert_select "p", text: "穏やかに質問へ答える"
+    assert_select ".scene-locations", count: 0
+    assert_select ".scene-exploration-cues", count: 0
+  end
+
   private
 
   def create_scenario(user: @user, title: "テストシナリオ")

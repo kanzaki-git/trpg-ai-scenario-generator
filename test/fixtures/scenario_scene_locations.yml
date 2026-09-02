@@ -1,0 +1,9 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  scenario_scene: one
+  scenario_location: one
+
+two:
+  scenario_scene: two
+  scenario_location: two

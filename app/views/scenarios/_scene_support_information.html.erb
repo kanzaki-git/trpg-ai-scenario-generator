@@ -24,19 +24,59 @@
 
         <div class="border-top p-4">
           <% scene.scenario_scene_npcs
-                  .sort_by { |scene_npc| scene_npc.scenario_npc.position }
+                  .sort_by { |scene_npc| scene_npc.scenario_npc.position.to_i }
                   .each do |scene_npc| %>
+            <% npc = scene_npc.scenario_npc %>
+            <% location = scene_npc.scenario_location || npc.initial_location %>
+
             <article class="mb-4">
-              <h4 class="h6 fw-bold mb-2">
-                <%= scene_npc.scenario_npc.name %>
+              <h4 class="h6 fw-bold mb-3">
+                <%= npc.name %>
               </h4>
 
-              <div class="lh-lg text-break">
-                <%= simple_format(
-                      scene_npc.reaction,
-                      class: "mb-0"
-                    ) %>
-              </div>
+              <dl class="mb-3">
+                <% if location.present? %>
+                  <dt class="fw-bold mb-1">居場所</dt>
+                  <dd class="mb-3 text-break">
+                    <%= location.name %>
+                  </dd>
+                <% end %>
+
+                <% if scene_npc.activity.present? %>
+                  <dt class="fw-bold mb-1">この場面での様子</dt>
+                  <dd class="mb-3 lh-lg text-break">
+                    <%= simple_format(
+                          scene_npc.activity,
+                          class: "mb-0"
+                        ) %>
+                  </dd>
+                <% end %>
+
+                <% if scene_npc.appearance_condition.present? %>
+                  <dt class="fw-bold mb-1">登場・移動のタイミング</dt>
+                  <dd class="mb-0 lh-lg text-break">
+                    <%= simple_format(
+                          scene_npc.appearance_condition,
+                          class: "mb-0"
+                        ) %>
+                  </dd>
+                <% end %>
+              </dl>
+
+              <% if scene_npc.reaction.present? %>
+                <div class="bg-body-tertiary rounded-3 p-3">
+                  <h5 class="h6 fw-bold mb-2">
+                    人物の反応・ゲームマスター向けメモ
+                  </h5>
+
+                  <div class="lh-lg text-break">
+                    <%= simple_format(
+                          scene_npc.reaction,
+                          class: "mb-0"
+                        ) %>
+                  </div>
+                </div>
+              <% end %>
             </article>
           <% end %>
         </div>

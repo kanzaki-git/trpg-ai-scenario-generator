@@ -78,16 +78,32 @@ class ScenariosController < ApplicationController
                 status: :see_other
   end
 
-  def materials; end
+  def materials
+    @scenario_npcs = @scenario.scenario_npcs
+      .includes(:initial_location)
+      .order(:position)
+      .load
+  end
 
   def scenes
     @scenario_scenes = @scenario.scenario_scenes
       .includes(
         :scenario_clues,
         :scenario_events,
-        scenario_scene_npcs: :scenario_npc
+        :scenario_locations,
+        scenario_scene_npcs: [
+          :scenario_location,
+          :scenario_npc
+        ],
+        scenario_exploration_cues: [
+          :source_location,
+          :target_location,
+          :scenario_npc
+        ]
       )
       .order(:position)
+
+    preload_npc_initial_locations
   end
 
   def conclusion; end
@@ -126,5 +142,19 @@ class ScenariosController < ApplicationController
       :player_count,
       :play_time
     )
+  end
+
+  def preload_npc_initial_locations
+    npcs = @scenario_scenes
+      .flat_map(&:scenario_scene_npcs)
+      .select { |appearance| appearance.scenario_location_id.nil? }
+      .map(&:scenario_npc)
+
+    return if npcs.empty?
+
+    ActiveRecord::Associations::Preloader.new(
+      records: npcs,
+      associations: :initial_location
+    ).call
   end
 end
