@@ -64,6 +64,10 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
     assert_equal "宝石につながる手がかりを見つける", scene.purpose
     assert_equal 10, scene.estimated_time
     assert_equal 1, scene.position
+    assert_equal(
+      "ホールの奥に、書斎へ続く扉があります。",
+      scene.read_aloud_text
+    )
 
     assert_equal(
       [
@@ -168,6 +172,45 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
     end
 
     assert_nil @scenario.reload.title
+  end
+
+  [ 2, 4 ].each do |option_count|
+    test "行動選択肢が#{option_count}個でも内容と順序を保って保存できる" do
+      generation_result = build_generation_result
+
+      options = Array.new(option_count) do |index|
+        number = index + 1
+
+        ScenarioGenerationSchema::InvestigationOption.new(
+          label: "対象#{number}を調べる",
+          result: "対象#{number}の調査結果です。",
+          gm_guide: "対象#{number}の調査後の案内です。"
+        )
+      end
+
+      generation_result.scenes.first.investigation_options = options
+
+      ScenarioGenerationSaver.new(
+        scenario: @scenario,
+        generation_result: generation_result
+      ).call
+
+      scene = @scenario.reload.scenario_scenes.first
+      saved_options = JSON.parse(scene.investigation_options)
+
+      assert_equal option_count, saved_options.size
+
+      options.each_with_index do |option, index|
+        assert_equal(
+          {
+            "label" => option.label,
+            "result" => option.result,
+            "gm_guide" => option.gm_guide
+          },
+          saved_options[index]
+        )
+      end
+    end
   end
 
   private

@@ -685,6 +685,123 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
     assert_select ".scene-exploration-cues", count: 0
   end
 
+  test "場所の描写を探索結果やGM向け情報と分けて表示できる" do
+    scenario = create_scenario
+
+    description = "薄暗い聖堂には蝋燭の匂いが漂い、奥には石の祭壇が置かれている。"
+    action_label = "祭壇を調べる"
+    exploration_result = "祭壇の石の角が一部欠けている。"
+    gm_guide = "欠けた石について尋ねられたら、司祭との会話へ進める。"
+
+    scenario.scenario_scenes.create!(
+      title: "聖堂の調査",
+      position: 1,
+      read_aloud_text: description,
+      investigation_options: [
+        {
+          label: action_label,
+          result: exploration_result,
+          gm_guide: gm_guide
+        }
+      ].to_json
+    )
+
+    get scenes_scenario_url(scenario)
+
+    assert_response :success
+
+    assert_select ".scene-location-description", count: 1 do |elements|
+      assert_select "h3", text: "場所の描写"
+
+      displayed_text = elements.first.text
+
+      assert_includes displayed_text, description
+      assert_not_includes displayed_text, exploration_result
+      assert_not_includes displayed_text, gm_guide
+      assert_not_includes displayed_text, scenario.truth
+    end
+
+    assert_includes response.body, action_label
+    assert_includes response.body, exploration_result
+    assert_includes response.body, gm_guide
+  end
+
+  test "場所の描写が未設定や空文字の既存シーンも表示できる" do
+    scenario = create_scenario
+
+    scenario.scenario_scenes.create!(
+      title: "描写が未設定のシーン",
+      position: 1,
+      read_aloud_text: nil
+    )
+
+    scenario.scenario_scenes.create!(
+      title: "描写が空文字のシーン",
+      position: 2,
+      read_aloud_text: ""
+    )
+
+    get scenes_scenario_url(scenario)
+
+    assert_response :success
+    assert_includes response.body, "描写が未設定のシーン"
+    assert_includes response.body, "描写が空文字のシーン"
+    assert_select ".scene-location-description", count: 0
+  end
+
+  [ 2, 4 ].each do |option_count|
+    test "行動選択肢が#{option_count}個でもすべて順番に表示できる" do
+      scenario = create_scenario
+
+      options = Array.new(option_count) do |index|
+        number = index + 1
+
+        {
+          label: "対象#{number}を調べる",
+          result: "対象#{number}の調査結果です。",
+          gm_guide: "対象#{number}の調査後の案内です。"
+        }
+      end
+
+      scenario.scenario_scenes.create!(
+        title: "調査するシーン",
+        position: 1,
+        read_aloud_text: "皆さんは今、調査室にいます。",
+        investigation_options: options.to_json
+      )
+
+      get scenes_scenario_url(scenario)
+
+      assert_response :success
+
+      assert_select ".scene-investigation-options", count: 1 do
+        assert_select "h3", text: "プレイヤーの行動選択肢"
+
+        assert_select "details", count: option_count do |blocks|
+          options.each_with_index do |option, index|
+            assert_select(
+              blocks[index],
+              "summary",
+              text: /選択肢#{index + 1}：\s*#{Regexp.escape(option[:label])}/
+            )
+
+            assert_select(
+              blocks[index],
+              ".alert-info p",
+              text: option[:result]
+            )
+
+            assert_select(
+              blocks[index],
+              ".border.rounded-3 p",
+              text: option[:gm_guide]
+            )
+          end
+        end
+      end
+    end
+  end
+
   private
 
   def create_scenario(user: @user, title: "テストシナリオ")
