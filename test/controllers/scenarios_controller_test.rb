@@ -726,6 +726,73 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, gm_guide
   end
 
+  test "到着時から見える探索対象だけを場所の描写に表示できる" do
+    scenario = create_scenario
+
+    visible_description = "書斎の中央に古い机があります。"
+    hidden_description = "机の裏側に小さな鍵があります。"
+
+    scenario.scenario_scenes.create!(
+      title: "書斎の調査",
+      position: 1,
+      read_aloud_text: "皆さんが書斎に入ると、薄暗い室内が広がっています。",
+      exploration_targets: [
+        {
+          key: "writing_desk",
+          name: "書斎の机",
+          visible_on_arrival: true,
+          description: visible_description,
+          reveal_condition: ""
+        },
+        {
+          key: "hidden_key",
+          name: "隠された鍵",
+          visible_on_arrival: false,
+          description: hidden_description,
+          reveal_condition: "机を詳しく調べた後"
+        }
+      ]
+    )
+
+    get scenes_scenario_url(scenario)
+
+    assert_response :success
+
+    assert_select ".scene-location-description", count: 1 do |elements|
+      displayed_text = elements.first.text
+
+      assert_includes displayed_text, visible_description
+      assert_not_includes displayed_text, hidden_description
+    end
+  end
+
+  test "場所の描写がなくても見える探索対象があれば表示できる" do
+    scenario = create_scenario
+
+    scenario.scenario_scenes.create!(
+      title: "書斎の調査",
+      position: 1,
+      read_aloud_text: nil,
+      exploration_targets: [
+        {
+          key: "writing_desk",
+          name: "書斎の机",
+          visible_on_arrival: true,
+          description: "書斎の中央に古い机があります。",
+          reveal_condition: ""
+        }
+      ]
+    )
+
+    get scenes_scenario_url(scenario)
+
+    assert_response :success
+
+    assert_select ".scene-location-description", count: 1 do
+      assert_select "p", text: "書斎の中央に古い机があります。"
+    end
+  end
+
   test "場所の描写が未設定や空文字の既存シーンも表示できる" do
     scenario = create_scenario
 

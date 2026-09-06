@@ -72,7 +72,21 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
     assert_equal(
       [
         {
+          "key" => "writing_desk",
+          "name" => "書斎の机",
+          "visible_on_arrival" => true,
+          "description" => "書斎の中央に古い机があります。",
+          "reveal_condition" => ""
+        }
+      ],
+      scene.exploration_targets
+    )
+
+    assert_equal(
+      [
+        {
           "label" => "机を調べる",
+          "target_keys" => [ "writing_desk" ],
           "result" => "鍵を発見する",
           "gm_guide" => "机の下へ誘導する"
         }
@@ -120,6 +134,69 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
     ending = @scenario.scenario_endings.first
     assert_equal "宝石を取り戻し事件は解決した。", ending.content
     assert_equal 1, ending.position
+  end
+
+  test "行動選択肢が存在しない探索対象を参照した場合は保存しない" do
+    generation_result = build_generation_result
+
+    generation_result.scenes.first
+      .investigation_options.first.target_keys = [ "missing_target" ]
+
+    assert_raises(KeyError) do
+      ScenarioGenerationSaver.new(
+        scenario: @scenario,
+        generation_result: generation_result
+      ).call
+    end
+
+    @scenario.reload
+
+    assert_nil @scenario.title
+    assert_empty @scenario.scenario_scenes
+  end
+
+  test "探索対象のキーが重複した場合は保存しない" do
+    generation_result = build_generation_result
+
+    generation_result.scenes.first.exploration_targets <<
+      ScenarioGenerationSchema::ExplorationTarget.new(
+        key: "writing_desk",
+        name: "別の机",
+        visible_on_arrival: true,
+        description: "部屋の隅にも机があります。",
+        reveal_condition: ""
+      )
+
+    assert_raises(ArgumentError) do
+      ScenarioGenerationSaver.new(
+        scenario: @scenario,
+        generation_result: generation_result
+      ).call
+    end
+
+    @scenario.reload
+
+    assert_nil @scenario.title
+    assert_empty @scenario.scenario_scenes
+  end
+
+  test "行動選択肢の対象が空の場合は保存しない" do
+    generation_result = build_generation_result
+
+    generation_result.scenes.first
+      .investigation_options.first.target_keys = []
+
+    assert_raises(ArgumentError) do
+      ScenarioGenerationSaver.new(
+        scenario: @scenario,
+        generation_result: generation_result
+      ).call
+    end
+
+    @scenario.reload
+
+    assert_nil @scenario.title
+    assert_empty @scenario.scenario_scenes
   end
 
   test "関連データの保存に失敗した場合はすべての変更を元に戻す" do
@@ -183,6 +260,7 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
 
         ScenarioGenerationSchema::InvestigationOption.new(
           label: "対象#{number}を調べる",
+          target_keys: [ "writing_desk" ],
           result: "対象#{number}の調査結果です。",
           gm_guide: "対象#{number}の調査後の案内です。"
         )
@@ -204,6 +282,7 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
         assert_equal(
           {
             "label" => option.label,
+            "target_keys" => option.target_keys,
             "result" => option.result,
             "gm_guide" => option.gm_guide
           },
@@ -276,9 +355,19 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
       read_aloud_text: "ホールの奥に、書斎へ続く扉があります。",
       gm_actions: "プレイヤーに調査する場所を確認する。",
       player_questions: "どこを調べますか？",
+      exploration_targets: [
+        ScenarioGenerationSchema::ExplorationTarget.new(
+          key: "writing_desk",
+          name: "書斎の机",
+          visible_on_arrival: true,
+          description: "書斎の中央に古い机があります。",
+          reveal_condition: ""
+        )
+      ],
       investigation_options: [
         ScenarioGenerationSchema::InvestigationOption.new(
           label: "机を調べる",
+          target_keys: [ "writing_desk" ],
           result: "鍵を発見する",
           gm_guide: "机の下へ誘導する"
         )

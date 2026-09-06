@@ -133,7 +133,8 @@
                   </section>
                 <% end %>
 
-                <% if scene.read_aloud_text.present? %>
+               <% if scene.read_aloud_text.present? ||
+                     scene.visible_exploration_target_items.any? %>
                   <section class="mb-5 scene-location-description">
                     <div
                       class="
@@ -165,10 +166,19 @@
                             text-break
                           "
                         >
-                          <%= simple_format(
-                                scene.read_aloud_text,
-                                class: "mb-0"
-                              ) %>
+                          <% if scene.read_aloud_text.present? %>
+                            <%= simple_format(
+                                  scene.read_aloud_text,
+                                  class: "mb-0"
+                                ) %>
+                          <% end %>
+
+                          <% scene.visible_exploration_target_items.each do |target| %>
+                            <%= simple_format(
+                                  target["description"],
+                                  class: "mb-0 mt-3"
+                                ) %>
+                          <% end %>
                         </div>
                       </div>
                     </div>

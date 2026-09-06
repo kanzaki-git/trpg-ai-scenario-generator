@@ -41,8 +41,17 @@ class ScenarioGenerationSchema < OpenAI::BaseModel
     required :position, Integer
   end
 
+  class ExplorationTarget < OpenAI::BaseModel
+    required :key, String
+    required :name, String
+    required :visible_on_arrival, OpenAI::Boolean
+    required :description, String
+    required :reveal_condition, String
+  end
+
   class InvestigationOption < OpenAI::BaseModel
     required :label, String
+    required :target_keys, OpenAI::ArrayOf[String]
     required :result, String
     required :gm_guide, String
   end
@@ -54,6 +63,7 @@ class ScenarioGenerationSchema < OpenAI::BaseModel
     required :read_aloud_text, String
     required :gm_actions, String
     required :player_questions, String
+    required :exploration_targets, OpenAI::ArrayOf[ExplorationTarget]
     required :investigation_options, OpenAI::ArrayOf[InvestigationOption]
     required :trigger_condition, String
     required :transition_condition, String

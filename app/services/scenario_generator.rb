@@ -271,7 +271,6 @@ class ScenarioGenerator
         ゲームマスターがプレイヤーへそのまま読み上げられる
         場所の描写を記載してください
 
-
       ・冒頭では、読み上げるだけでプレイヤーキャラクターが
         今どこにいるのか分かるよう、具体的な場所名を示してください
 
@@ -298,11 +297,13 @@ class ScenarioGenerator
         移動経路が確定していない場合は現在地だけを伝え、
         プレイヤーが選んでいない移動や行動を決めつけないでください
 
-      ・現在地を伝えた後に、場所の雰囲気、
-        その場で見える探索対象や会話相手を簡潔に描写してください
+      ・現在地を伝えた後に、場所全体の雰囲気を
+        簡潔に描写してください
 
-      ・場所の全体像、雰囲気、その場で見える物や人物の存在を
-        描写してください
+      ・個別の探索対象や会話相手の存在、位置、外見は
+        exploration_targetsのdescriptionに記載してください
+        画面上で場所の描写に追加するため、
+        read_aloud_textには重複して記載しないでください
 
       ・見た目、明るさ、音、匂いなどから場面に合うものを選び、
         世界観やシナリオの雰囲気に合わせてください
@@ -313,49 +314,113 @@ class ScenarioGenerator
         初めて分かる情報は含めないでください
 
       ・シーン開始時に選べるすべての行動について、
-        対象となる物、設備、人物の存在や位置が
-        read_aloud_textから分かるようにしてください
-        隠された対象は先に描写せず、
-        発見後に行動を選べる条件をgm_guideに記載してください
+        対象となる物、設備、人物をexploration_targetsに設定し、
+        visible_on_arrivalをtrueにしてください
+
+      ・探索や会話の後に初めて存在が分かる対象は、
+        visible_on_arrivalをfalseにしてください
+        発見条件をreveal_conditionと、
+        対応する行動選択肢のgm_guideに記載してください
 
       ・物がなくなっている場合は、残された棚、包装、封印など、
         実際にその場で調べられる対象を明確にしてください
         なくなった物そのものを調べる内容にしないでください
 
-      ・read_aloud_textとresultで対象の状態を一致させてください
-        操作によって状態が変化する場合は、
+      ・exploration_targetsのdescriptionと、
+        対応するinvestigation_optionsのresultで
+        対象の位置や状態を一致させてください
+
+      ・操作によって状態が変化する場合は、
+        descriptionに操作前の状態を記載し、
         「端末を操作すると画面が点く」など、
         行動と状態変化のつながりをresultに記載してください
 
       ・探索によって発見する物の細かな状態、不審な点、
-        隠された手がかりは、該当するinvestigation_optionsの
-        resultに記載してください
+        隠された手がかりは、descriptionには含めず、
+        該当するinvestigation_optionsのresultに記載してください
 
-      ・例えば、到着時には「奥には石の祭壇が置かれている」と伝え、
+      ・例えば、祭壇のdescriptionには
+        「奥には石の祭壇が置かれている」と記載し、
         「祭壇の石の角が一部欠けている」という情報は、
         祭壇を調べたときのresultに記載してください
 
-      ・描写する場所や物は、そのシーンのlocation_positionsと
-        investigation_optionsの内容に矛盾しないようにしてください
+      ・read_aloud_textとexploration_targetsで扱う場所や対象は、
+        そのシーンのlocation_positions、
+        npc_appearances、investigation_optionsと
+        矛盾しないようにしてください
         別の場所や、まだ訪れていない場所の様子を混ぜないでください
 
       ・シーン開始時から会話できるNPCを行動選択肢に含める場合は、
-        その人物と会話できることがread_aloud_textから分かるようにしてください
-        導入で紹介済みでも、その場にいる人物は居場所や様子を
-        短く描写してください
+        その人物をexploration_targetsにも設定し、
+        visible_on_arrivalをtrueにしてください
+        descriptionには、その人物の居場所と外から見える様子を
+        短く記載してください
 
-      ・通信を通じて会話する場合は、相手と通信手段が分かるようにし、
+      ・通信を通じて会話する場合は、
+        descriptionから相手と通信手段が分かるようにし、
         離れた場所にいる人物を、その場にいるように描写しないでください
 
-      ・人物の描写は、npc_appearancesに設定した場所、
+      ・人物のdescriptionは、npc_appearancesに設定した場所、
         行動、登場条件と一致させてください
-        登場条件を満たしていない人物や、まだ発見していない人物を
-        最初から会話できる対象として描写しないでください
+        登場条件を満たしていない人物や、まだ発見していない人物は
+        visible_on_arrivalをfalseにし、
+        reveal_conditionに登場または発見の条件を記載してください
 
       ・プレイヤーがまだ知らない真相、ゲームマスターへの指示、
         探索結果の先出しは含めないでください
 
       ・2〜4文、150文字以内を目安にしてください
+
+      【探索対象】
+
+      ・各シーンのexploration_targetsには、そのシーンで
+        プレイヤーが調べる、操作する、または会話する対象を
+        設定してください
+
+      ・物、設備、文書、人物など、
+        investigation_optionsで行動の対象となるものを
+        exploration_targetsに含めてください
+
+      ・keyには、同じシーン内で重複しない
+        英小文字のsnake_caseを設定してください
+        例えば、祭壇はaltar、保管庫端末はstorage_terminalとしてください
+
+      ・nameには、ゲームマスターとプレイヤーが理解できる
+        具体的な対象名を設定してください
+
+      ・visible_on_arrivalには、シーン開始時点で
+        対象の存在が分かる場合はtrue、
+        探索や会話の後に初めて存在が分かる場合はfalseを
+        設定してください
+
+      ・descriptionには、対象の存在、位置、外から見える状態を、
+        ゲームマスターがそのまま読み上げられる
+        1〜2文で記載してください
+
+      ・visible_on_arrivalがtrueのdescriptionは、
+        画面上でread_aloud_textの後に自動的に表示します
+        同じ対象の説明をread_aloud_textへ重複して記載しないでください
+
+      ・visible_on_arrivalがfalseの場合は、
+        reveal_conditionに、どの行動や情報によって
+        対象の存在が分かるのかを具体的に記載してください
+
+      ・visible_on_arrivalがtrueの場合は、
+        reveal_conditionを空文字にしてください
+
+      ・対象を調べて初めて分かる細かな状態、不審な点、
+        手がかりや真相はdescriptionへ含めず、
+        対応するinvestigation_optionsのresultへ記載してください
+
+      ・各investigation_optionsのtarget_keysには、
+        その行動が対象とするexploration_targetsのkeyを
+        一つ以上設定してください
+
+      ・target_keysには、同じシーンのexploration_targetsに
+        実際に存在するkeyだけを使用してください
+
+      ・複数の対象を一度に扱う行動では、
+        関係するすべてのkeyをtarget_keysへ設定してください
 
       【ゲームマスターが行うこと】
 
@@ -412,21 +477,32 @@ class ScenarioGenerator
         数を埋めるために、同じ行動の言い換えや
         結果がほとんど同じ選択肢を追加しないでください
 
-      ・各選択肢には、label、result、gm_guideを
+      ・各選択肢には、label、target_keys、result、gm_guideを
         必ず設定してください
 
       ・labelには「祭壇を調べる」「司祭に昨夜のことを尋ねる」など、
         何を対象に、どのような行動をするのかを20文字程度で明記してください
 
-      ・シーン開始時に選べる行動の対象は、read_aloud_textで
-        存在が分かる物や人物と対応させてください
-        探索や会話の後に初めて選べる行動については、
-        選べるようになる条件をgm_guideに明記してください
+      ・target_keysには、その選択肢で調べる、操作する、
+        または会話する対象のkeyを一つ以上設定してください
+
+      ・target_keysには、同じシーンのexploration_targetsに
+        存在するkeyだけを設定してください
+
+      ・シーン開始時に選べる行動の対象は、
+        exploration_targetsのvisible_on_arrivalをtrueにし、
+        そのkeyを選択肢のtarget_keysに設定してください
+
+      ・探索や会話の後に初めて選べる行動の対象は、
+        visible_on_arrivalをfalseにしてください
+        選べるようになる条件をreveal_conditionと
+        gm_guideに記載してください
 
       ・resultには、その対象にその行動をしたことで
         初めて分かる情報を記載してください
-        場所の描写と探索結果で、物の位置や状態、
-        人物の配置が矛盾しないようにしてください
+        exploration_targetsのdescriptionとresultで、
+        物の位置や状態、人物の配置が
+        矛盾しないようにしてください
 
       ・resultには、その行動を選んだ直後に、
         ゲームマスターがプレイヤーへそのまま
@@ -549,7 +625,7 @@ class ScenarioGenerator
 
       ・該当する要素がない場合は、空の配列にしてください
 
-            【共通の場所データ】
+      【共通の場所データ】
 
       ・locationsには、シナリオで使用する場所をまとめてください
         部屋、村、森、遺跡など、ジャンルに合う場所を設定してください
@@ -715,6 +791,10 @@ class ScenarioGenerator
   def build_scene(scene_data)
     ScenarioGenerationSchema::Scene.new(
       **scene_data.merge(
+        exploration_targets: build_collection(
+          scene_data.fetch(:exploration_targets),
+          ScenarioGenerationSchema::ExplorationTarget
+        ),
         investigation_options: build_collection(
           scene_data.fetch(:investigation_options),
           ScenarioGenerationSchema::InvestigationOption
