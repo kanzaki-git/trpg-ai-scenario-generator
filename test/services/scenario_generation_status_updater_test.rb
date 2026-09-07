@@ -203,4 +203,85 @@ class ScenarioGenerationStatusUpdaterTest < ActiveSupport::TestCase
                  @generation_log.error_message
     assert @generation_log.finished_at.present?
   end
+
+  test "保存に失敗した場合は失敗状態に更新して利用回数を一度だけ返す" do
+    openai_response = OpenStruct.new(
+      id: @scenario.openai_response_id,
+      model: "gpt-5.2",
+      status: :completed,
+      usage: nil
+    )
+
+    generation_result = Object.new
+
+    fake_generator = Minitest::Mock.new
+    fake_generator.expect(
+      :retrieve_background,
+      openai_response,
+      [ @scenario.openai_response_id ]
+    )
+    fake_generator.expect(
+      :extract_background_result,
+      generation_result,
+      [ openai_response ]
+    )
+
+    invalid_record = ScenarioSceneNpc.new
+    invalid_record.errors.add(
+      :scenario_location,
+      "はこのシーンに関連付けられた場所を指定してください"
+    )
+
+    saving_error = ActiveRecord::RecordInvalid.new(invalid_record)
+
+    failing_saver = Object.new
+    failing_saver.define_singleton_method(:call) do
+      raise saving_error
+    end
+
+    # 2回から始めることで、二重返却も検出できるようにする。
+    @user.update!(scenario_generation_count: 2)
+
+    ScenarioGenerator.stub(
+      :new,
+      ->(scenario:) {
+        assert_equal @scenario, scenario
+        fake_generator
+      }
+    ) do
+      ScenarioGenerationSaver.stub(
+        :new,
+        lambda do |scenario:, generation_result:|
+          assert_equal @scenario, scenario
+          failing_saver
+        end
+      ) do
+        updater = ScenarioGenerationStatusUpdater.new(
+          scenario: @scenario
+        )
+
+        updater.call
+
+        assert @scenario.reload.failed?
+        assert_equal 1, @user.reload.scenario_generation_count
+
+        @generation_log.reload
+
+        assert @generation_log.failed?
+        assert_equal "save_error", @generation_log.openai_status
+        assert_equal "ActiveRecord::RecordInvalid",
+                     @generation_log.error_class
+        assert_equal saving_error.message,
+                     @generation_log.error_message
+        assert @generation_log.finished_at.present?
+
+        # 再度確認されても、利用回数をもう一度返さない。
+        updater.call
+
+        assert_equal 1, @user.reload.scenario_generation_count
+      end
+    end
+
+    fake_generator.verify
+  end
 end

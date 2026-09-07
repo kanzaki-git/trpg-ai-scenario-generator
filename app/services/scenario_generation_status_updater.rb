@@ -75,6 +75,17 @@ class ScenarioGenerationStatusUpdater
         openai_response
       )
     end
+  rescue ActiveRecord::RecordInvalid => e
+    Rails.logger.error(
+      "シナリオ生成結果の保存に失敗しました: " \
+      "scenario_id=#{scenario.id} " \
+      "#{e.class} #{e.message}"
+    )
+
+    fail_generation(
+      openai_status: :save_error,
+      error: e
+    )
   end
 
   def fail_generation(
