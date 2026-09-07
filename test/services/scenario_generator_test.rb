@@ -57,6 +57,15 @@ class ScenarioGeneratorTest < ActiveSupport::TestCase
     assert_includes prompt, "雰囲気：シリアス"
     assert_includes prompt, "プレイ人数：4人"
     assert_includes prompt, "プレイ時間：60分"
+    assert_includes(
+      prompt,
+      "exploration_cuesのtrigger_conditionに設定しないでください"
+    )
+
+    assert_includes(
+      prompt,
+      "行動によって得られる情報はinvestigation_optionsにまとめてください"
+    )
     assert_includes prompt, "【探索対象】"
     assert_includes prompt, "visible_on_arrival"
     assert_includes prompt, "target_keys"

@@ -493,10 +493,15 @@ class ScenarioGenerator
         exploration_targetsのvisible_on_arrivalをtrueにし、
         そのkeyを選択肢のtarget_keysに設定してください
 
-      ・探索や会話の後に初めて選べる行動の対象は、
-        visible_on_arrivalをfalseにしてください
-        選べるようになる条件をreveal_conditionと
-        gm_guideに記載してください
+      ・visible_on_arrivalは、行動できるかどうかではなく、
+        シーン開始時に対象の存在が分かるかどうかで設定してください
+
+      ・対象は最初から見えていても、鍵や情報などが必要な行動は、
+        選べるようになる条件をgm_guideに記載してください
+
+      ・対象そのものが隠されている場合は、
+        visible_on_arrivalをfalseにし、
+        発見条件をreveal_conditionとgm_guideに記載してください
 
       ・resultには、その対象にその行動をしたことで
         初めて分かる情報を記載してください
@@ -541,8 +546,11 @@ class ScenarioGenerator
         どの行動によって発見できるのかが
         分かるようにしてください
 
-      ・手がかりをプレイヤーへ伝える言葉を、
-        resultまたはgm_guideに含めてください
+      ・行動によって発見する手がかりをプレイヤーへ伝える文章は、
+        対応するinvestigation_optionsのresultに含めてください
+
+      ・gm_guideには、手がかりの渡し方や、
+        発見後の進行に関する補足を記載してください
 
       ・重要な手がかりを一つ見落としただけで
         進行不能にならないようにしてください
@@ -564,8 +572,6 @@ class ScenarioGenerator
 
       ・人物の生い立ちや基本プロフィールを
         繰り返さないでください
-
-      ・必要に応じて、短い台詞例を含めてください
 
       【イベント】
 
@@ -670,11 +676,16 @@ class ScenarioGenerator
       ・細かな行動予定表は作らず、GMが登場させるための目安にしてください
         前の場面での移動や出来事と、後の場面の配置を整合させてください
 
-      ・reactionにはGMが演じるための目的、態度、反応を記載してください
+      ・reactionには、ゲームマスターが演じるための態度や
+        反応の方針を記載してください
         プレイヤーへ読み上げる具体的な台詞は含めないでください
 
-      ・行動選択肢への回答となる台詞はinvestigation_optionsのresultに、
-        それ以外の探索案内となる台詞はexploration_cuesに記載してください
+      ・プレイヤーがNPCへ質問したときの回答は、
+        investigation_optionsのresultに記載してください
+
+      ・NPCがプレイヤーから質問されずに自発的に伝える探索案内は、
+        exploration_cuesに記載してください
+        trigger_conditionには、そのNPCが話し始める状況を明記してください
 
       【探索のきっかけ】
 
@@ -694,8 +705,17 @@ class ScenarioGenerator
       ・音、痕跡、書類、出来事などによるきっかけは、
         npc_positionをnullにしてください
 
+      ・exploration_cuesは、場所への到着、イベントの発生、
+        時間経過、プレイヤーが迷った場合など、
+        プレイヤーが行動選択肢を選ばなくても
+        提示できる情報にしてください
+
+      ・プレイヤーが選択する行動を
+        exploration_cuesのtrigger_conditionに設定しないでください
+
       ・trigger_conditionには、GMが情報を提示するタイミングを
-        「その場所に入ったとき」「昨夜について尋ねられたとき」など、
+        「その場所に入ったとき」「警告音が鳴ったとき」
+        「プレイヤーが行き先に迷ったとき」など、
         短く具体的に記載してください
 
       ・read_aloud_textには、プレイヤーへそのまま伝えられる
@@ -705,8 +725,9 @@ class ScenarioGenerator
       ・read_aloud_textにはGMへの指示や、その場面でまだ公開しない
         真相、犯人、NPCの秘密を混ぜないでください
 
-      ・行動選択肢への結果はinvestigation_optionsに、
-        それ以外の行動や状況から探索先へ導く補助情報は
+      ・プレイヤーの行動によって得られる情報はinvestigation_optionsにまとめてください
+
+      ・行動選択肢とは関係なく自動的に提示する補助情報だけを
         exploration_cuesに記載してください
 
       ・同じ行動や提示条件に対する情報を、
@@ -733,7 +754,8 @@ class ScenarioGenerator
         そのNPCとの会話や、その会話でしか得られない情報を
         前提にしないでください
 
-      ・別の行動や条件から同じ探索先へ導くことは構いません
+      ・investigation_optionsとは別の自動的な状況から
+        同じ探索先へ導くことは構いません
         ただし、すでに探索先と調べる理由が分かっている場合に、
         同じ案内を再度読み上げさせないよう、
         exploration_cuesのtrigger_conditionに提示条件を明記してください
