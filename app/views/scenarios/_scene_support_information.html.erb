@@ -18,7 +18,7 @@
           class="fw-bold p-3"
           style="cursor: pointer;"
         >
-          このシーンに登場する人物
+          このシーンに関わる人物
           （<%= scene.scenario_scene_npcs.size %>人）
         </summary>
 
@@ -30,20 +30,30 @@
             <% location = scene_npc.scenario_location || npc.initial_location %>
 
             <article class="mb-4">
-              <h4 class="h6 fw-bold mb-3">
-                <%= npc.name %>
-              </h4>
+              <div class="d-flex align-items-center gap-2 mb-3">
+                <h4 class="h6 fw-bold mb-0">
+                  <%= npc.name %>
+                </h4>
+
+                <span class="badge text-bg-secondary">
+                  <%= scene_npc.remote? ? "遠隔" : "対面" %>
+                </span>
+              </div>
 
               <dl class="mb-3">
                 <% if location.present? %>
-                  <dt class="fw-bold mb-1">居場所</dt>
+                  <dt class="fw-bold mb-1">
+                    <%= scene_npc.remote? ? "実際の居場所" : "居場所" %>
+                  </dt>
                   <dd class="mb-3 text-break">
                     <%= location.name %>
                   </dd>
                 <% end %>
 
                 <% if scene_npc.activity.present? %>
-                  <dt class="fw-bold mb-1">この場面での様子</dt>
+                  <dt class="fw-bold mb-1">
+                    <%= scene_npc.remote? ? "別の場所での様子" : "この場面での様子" %>
+                  </dt>
                   <dd class="mb-3 lh-lg text-break">
                     <%= simple_format(
                           scene_npc.activity,
@@ -53,7 +63,9 @@
                 <% end %>
 
                 <% if scene_npc.appearance_condition.present? %>
-                  <dt class="fw-bold mb-1">登場・移動のタイミング</dt>
+                  <dt class="fw-bold mb-1">
+                    <%= scene_npc.remote? ? "参加・登場のタイミング" : "登場・移動のタイミング" %>
+                  </dt>
                   <dd class="mb-0 lh-lg text-break">
                     <%= simple_format(
                           scene_npc.appearance_condition,

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_09_02_185532) do
+ActiveRecord::Schema[8.0].define(version: 2026_09_07_233708) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -150,6 +150,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_02_185532) do
     t.bigint "scenario_location_id"
     t.text "activity"
     t.text "appearance_condition"
+    t.string "participation_mode", default: "in_person", null: false
     t.index ["scenario_location_id"], name: "index_scenario_scene_npcs_on_scenario_location_id"
     t.index ["scenario_npc_id"], name: "index_scenario_scene_npcs_on_scenario_npc_id"
     t.index ["scenario_scene_id", "scenario_npc_id"], name: "index_scene_npcs_on_scene_and_npc", unique: true
@@ -171,6 +172,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_02_185532) do
     t.integer "position"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.jsonb "exploration_targets", default: [], null: false
     t.index ["scenario_id"], name: "index_scenario_scenes_on_scenario_id"
   end
 

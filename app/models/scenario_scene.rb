@@ -12,6 +12,27 @@ class ScenarioScene < ApplicationRecord
   has_many :scenario_events, through: :scenario_scene_events
   has_many :scenario_locations, through: :scenario_scene_locations
 
+  def exploration_target_items
+    required_keys = %w[
+      key
+      name
+      visible_on_arrival
+      description
+      reveal_condition
+    ]
+
+    Array(exploration_targets).select do |target|
+      target.is_a?(Hash) &&
+        required_keys.all? { |key| target.key?(key) }
+    end
+  end
+
+  def visible_exploration_target_items
+    exploration_target_items.select do |target|
+      target["visible_on_arrival"] == true
+    end
+  end
+
   def investigation_option_items
     parsed_options = JSON.parse(investigation_options)
 

@@ -64,11 +64,29 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
     assert_equal "宝石につながる手がかりを見つける", scene.purpose
     assert_equal 10, scene.estimated_time
     assert_equal 1, scene.position
+    assert_equal(
+      "ホールの奥に、書斎へ続く扉があります。",
+      scene.read_aloud_text
+    )
+
+    assert_equal(
+      [
+        {
+          "key" => "writing_desk",
+          "name" => "書斎の机",
+          "visible_on_arrival" => true,
+          "description" => "書斎の中央に古い机があります。",
+          "reveal_condition" => ""
+        }
+      ],
+      scene.exploration_targets
+    )
 
     assert_equal(
       [
         {
           "label" => "机を調べる",
+          "target_keys" => [ "writing_desk" ],
           "result" => "鍵を発見する",
           "gm_guide" => "机の下へ誘導する"
         }
@@ -84,6 +102,7 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
     scene_npc = scene.scenario_scene_npcs.first
     assert_equal npc, scene_npc.scenario_npc
     assert_equal hall, scene_npc.scenario_location
+    assert_equal "in_person", scene_npc.participation_mode
     assert_equal "窓枠を拭いている", scene_npc.activity
     assert_equal "", scene_npc.appearance_condition
     assert_equal "質問に慎重に答える", scene_npc.reaction
@@ -101,8 +120,11 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
     assert_equal hall, dialogue.source_location
     assert_equal study, dialogue.target_location
     assert_equal npc, dialogue.scenario_npc
-    assert_equal "昨夜のことを尋ねられたとき", dialogue.trigger_condition
-    assert_equal "昨夜、書斎から物音がしたんです。", dialogue.read_aloud_text
+    assert_equal "プレイヤーが次の調査先に迷ったとき", dialogue.trigger_condition
+    assert_equal(
+      "執事が「昨夜、書斎から物音がしました」と告げます。",
+      dialogue.read_aloud_text
+    )
     assert_equal 1, dialogue.position
 
     sound = cues.last
@@ -116,6 +138,69 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
     ending = @scenario.scenario_endings.first
     assert_equal "宝石を取り戻し事件は解決した。", ending.content
     assert_equal 1, ending.position
+  end
+
+  test "行動選択肢が存在しない探索対象を参照した場合は保存しない" do
+    generation_result = build_generation_result
+
+    generation_result.scenes.first
+      .investigation_options.first.target_keys = [ "missing_target" ]
+
+    assert_raises(KeyError) do
+      ScenarioGenerationSaver.new(
+        scenario: @scenario,
+        generation_result: generation_result
+      ).call
+    end
+
+    @scenario.reload
+
+    assert_nil @scenario.title
+    assert_empty @scenario.scenario_scenes
+  end
+
+  test "探索対象のキーが重複した場合は保存しない" do
+    generation_result = build_generation_result
+
+    generation_result.scenes.first.exploration_targets <<
+      ScenarioGenerationSchema::ExplorationTarget.new(
+        key: "writing_desk",
+        name: "別の机",
+        visible_on_arrival: true,
+        description: "部屋の隅にも机があります。",
+        reveal_condition: ""
+      )
+
+    assert_raises(ArgumentError) do
+      ScenarioGenerationSaver.new(
+        scenario: @scenario,
+        generation_result: generation_result
+      ).call
+    end
+
+    @scenario.reload
+
+    assert_nil @scenario.title
+    assert_empty @scenario.scenario_scenes
+  end
+
+  test "行動選択肢の対象が空の場合は保存しない" do
+    generation_result = build_generation_result
+
+    generation_result.scenes.first
+      .investigation_options.first.target_keys = []
+
+    assert_raises(ArgumentError) do
+      ScenarioGenerationSaver.new(
+        scenario: @scenario,
+        generation_result: generation_result
+      ).call
+    end
+
+    @scenario.reload
+
+    assert_nil @scenario.title
+    assert_empty @scenario.scenario_scenes
   end
 
   test "関連データの保存に失敗した場合はすべての変更を元に戻す" do
@@ -170,9 +255,78 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
     assert_nil @scenario.reload.title
   end
 
+  [ 2, 4 ].each do |option_count|
+    test "行動選択肢が#{option_count}個でも内容と順序を保って保存できる" do
+      generation_result = build_generation_result
+
+      options = Array.new(option_count) do |index|
+        number = index + 1
+
+        ScenarioGenerationSchema::InvestigationOption.new(
+          label: "対象#{number}を調べる",
+          target_keys: [ "writing_desk" ],
+          result: "対象#{number}の調査結果です。",
+          gm_guide: "対象#{number}の調査後の案内です。"
+        )
+      end
+
+      generation_result.scenes.first.investigation_options = options
+
+      ScenarioGenerationSaver.new(
+        scenario: @scenario,
+        generation_result: generation_result
+      ).call
+
+      scene = @scenario.reload.scenario_scenes.first
+      saved_options = JSON.parse(scene.investigation_options)
+
+      assert_equal option_count, saved_options.size
+
+      options.each_with_index do |option, index|
+        assert_equal(
+          {
+            "label" => option.label,
+            "target_keys" => option.target_keys,
+            "result" => option.result,
+            "gm_guide" => option.gm_guide
+          },
+          saved_options[index]
+        )
+      end
+    end
+  end
+
+  test "遠隔参加のNPCはシーン外の場所にいても保存できる" do
+    remote_scene = build_scene(
+      npc_location_position: 3,
+      participation_mode: "remote"
+    )
+
+    generation_result = build_generation_result(
+      scene_data: remote_scene
+    )
+    generation_result.locations << ScenarioGenerationSchema::Location.new(
+      name: "地下保管庫",
+      description: "屋敷の地下にある保管庫。",
+      position: 3
+    )
+
+    ScenarioGenerationSaver.new(
+      scenario: @scenario,
+      generation_result: generation_result
+    ).call
+
+    scene = @scenario.reload.scenario_scenes.first
+    appearance = scene.scenario_scene_npcs.first
+
+    assert_equal [ 1, 2 ], scene.scenario_locations.pluck(:position).sort
+    assert_equal "remote", appearance.participation_mode
+    assert_equal 3, appearance.scenario_location.position
+  end
+
   private
 
-  def build_generation_result(clue_positions: [ 1 ])
+  def build_generation_result(clue_positions: [ 1 ], scene_data: nil)
     ScenarioGenerationSchema.new(
       title: "消えた宝石の謎",
       summary: "宝石の行方を調査する物語",
@@ -214,7 +368,7 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
         )
       ],
       scenes: [
-        build_scene(clue_positions: clue_positions)
+        scene_data || build_scene(clue_positions: clue_positions)
       ],
       endings: [
         ScenarioGenerationSchema::Ending.new(
@@ -225,7 +379,11 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
     )
   end
 
-  def build_scene(clue_positions: [ 1 ])
+  def build_scene(
+    clue_positions: [ 1 ],
+    npc_location_position: 1,
+    participation_mode: "in_person"
+  )
     ScenarioGenerationSchema::Scene.new(
       title: "屋敷の調査",
       purpose: "宝石につながる手がかりを見つける",
@@ -233,9 +391,19 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
       read_aloud_text: "ホールの奥に、書斎へ続く扉があります。",
       gm_actions: "プレイヤーに調査する場所を確認する。",
       player_questions: "どこを調べますか？",
+      exploration_targets: [
+        ScenarioGenerationSchema::ExplorationTarget.new(
+          key: "writing_desk",
+          name: "書斎の机",
+          visible_on_arrival: true,
+          description: "書斎の中央に古い机があります。",
+          reveal_condition: ""
+        )
+      ],
       investigation_options: [
         ScenarioGenerationSchema::InvestigationOption.new(
           label: "机を調べる",
+          target_keys: [ "writing_desk" ],
           result: "鍵を発見する",
           gm_guide: "机の下へ誘導する"
         )
@@ -247,7 +415,8 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
       npc_appearances: [
         ScenarioGenerationSchema::SceneNpc.new(
           npc_position: 1,
-          location_position: 1,
+          location_position: npc_location_position,
+          participation_mode: participation_mode,
           activity: "窓枠を拭いている",
           appearance_condition: "",
           reaction: "質問に慎重に答える"
@@ -266,8 +435,8 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
         source_location_position: 1,
         target_location_position: 2,
         npc_position: 1,
-        trigger_condition: "昨夜のことを尋ねられたとき",
-        read_aloud_text: "昨夜、書斎から物音がしたんです。",
+        trigger_condition: "プレイヤーが次の調査先に迷ったとき",
+        read_aloud_text: "執事が「昨夜、書斎から物音がしました」と告げます。",
         position: 1
       ),
       # openai 0.68.0への対応として、NPCなしの場合は

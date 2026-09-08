@@ -116,4 +116,22 @@ class ScenarioExplorationCueTest < ActiveSupport::TestCase
     assert_includes @cue.errors[:scenario_npc],
                     "の居場所と情報を得る場所を一致させてください"
   end
+
+  test "遠隔参加のNPCは別の場所から情報を伝えられる" do
+    npc = scenario_npcs(:one)
+
+    scenario_scene_npcs(:one).update!(
+      scenario_location: @target_location,
+      participation_mode: "remote"
+    )
+
+    @cue.assign_attributes(
+      scenario_npc: npc,
+      trigger_condition: "通信回線が接続されたとき",
+      read_aloud_text: "通信端末から船長の声が聞こえます。"
+    )
+
+    assert @cue.save, @cue.errors.full_messages.join(", ")
+    assert_equal npc, @cue.reload.scenario_npc
+  end
 end

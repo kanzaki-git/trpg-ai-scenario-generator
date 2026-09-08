@@ -68,6 +68,7 @@ class ScenarioExplorationCue < ApplicationRecord
       return
     end
 
+    return if appearance.remote?
     return if source_location.blank?
 
     speaker_location_id =

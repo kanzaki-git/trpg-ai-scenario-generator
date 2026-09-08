@@ -3,6 +3,13 @@ class ScenarioSceneNpc < ApplicationRecord
   belongs_to :scenario_npc
   belongs_to :scenario_location, optional: true
 
+  enum :participation_mode,
+       {
+         in_person: "in_person",
+         remote: "remote"
+       },
+       validate: true
+
   validates :scenario_npc_id,
             uniqueness: { scope: :scenario_scene_id }
 
@@ -31,6 +38,8 @@ class ScenarioSceneNpc < ApplicationRecord
       )
       return
     end
+
+    return if remote?
 
     return if scenario_scene.scenario_scene_locations.exists?(
       scenario_location_id: scenario_location.id

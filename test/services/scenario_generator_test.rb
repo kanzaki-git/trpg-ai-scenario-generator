@@ -57,6 +57,34 @@ class ScenarioGeneratorTest < ActiveSupport::TestCase
     assert_includes prompt, "雰囲気：シリアス"
     assert_includes prompt, "プレイ人数：4人"
     assert_includes prompt, "プレイ時間：60分"
+    assert_includes(
+      prompt,
+      "exploration_cuesのtrigger_conditionに設定しないでください"
+    )
+
+    assert_includes(
+      prompt,
+      "行動によって得られる情報はinvestigation_optionsにまとめてください"
+    )
+    assert_includes prompt, "【探索対象】"
+    assert_includes prompt, "visible_on_arrival"
+    assert_includes prompt, "target_keys"
+
+    assert_includes prompt, "participation_modeには、"
+    assert_includes(
+      prompt,
+      "対面ならin_person、遠隔ならremoteを設定してください"
+    )
+
+    assert_includes(
+      prompt,
+      "location_positionには、NPCが実際にいる場所のpositionを設定してください"
+    )
+
+    assert_includes(
+      prompt,
+      "remoteの場合、配置場所をそのシーンのlocation_positionsに含める必要はありません"
+    )
   end
 
   test "生成受付番号がなければエラーになる" do
@@ -126,8 +154,18 @@ class ScenarioGeneratorTest < ActiveSupport::TestCase
     )
 
     assert_instance_of(
+      ScenarioGenerationSchema::ExplorationTarget,
+      result.scenes.first.exploration_targets.first
+    )
+
+    assert_instance_of(
       ScenarioGenerationSchema::InvestigationOption,
       result.scenes.first.investigation_options.first
+    )
+
+    assert_equal(
+      [ "writing_desk" ],
+      result.scenes.first.investigation_options.first.target_keys
     )
 
     assert_instance_of(
@@ -350,9 +388,19 @@ end
           read_aloud_text: "ホールの奥に、書斎へ続く扉があります。",
           gm_actions: "調べる場所を確認する。",
           player_questions: "どこを調べますか？",
+          exploration_targets: [
+            {
+              key: "writing_desk",
+              name: "書斎の机",
+              visible_on_arrival: true,
+              description: "書斎の中央に古い机があります。",
+              reveal_condition: ""
+            }
+          ],
           investigation_options: [
             {
               label: "書斎の机を調べる",
+              target_keys: [ "writing_desk" ],
               result: "机の下に鍵が落ちています。",
               gm_guide: "鍵を使えそうな場所を考えてもらう。"
             }

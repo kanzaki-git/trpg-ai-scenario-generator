@@ -265,18 +265,167 @@ class ScenarioGenerator
       ・最初のシーンは、セッション開始時に
         そのまま始められる条件にしてください
 
-      【読み上げ文章】
+      【場所の描写】
 
-      ・read_aloud_textには、ゲームマスターが
-        プレイヤーへそのまま読み上げられる文章を記載してください
+      ・各シーンのread_aloud_textには、そのシーンの開始時に
+        ゲームマスターがプレイヤーへそのまま読み上げられる
+        場所の描写を記載してください
 
-      ・現在の場所、起きた出来事、
-        プレイヤーが判断するために必要な情報だけを含めてください
+      ・冒頭では、読み上げるだけでプレイヤーキャラクターが
+        今どこにいるのか分かるよう、具体的な場所名を示してください
 
-      ・プレイヤーがまだ知らない真相や、
-        ゲームマスターだけが知る情報は含めないでください
+      ・呼びかけは「皆さん」「あなたたち」など、
+        場面に合った自然な表現にしてください
+        キャラクター名が入力情報にある場合は、その名前も使用できます
+        入力されていない名前を勝手に作らないでください
 
-      ・2〜4文、120文字以内を目安にしてください
+      ・以下の書き出し例は、現在地や到着を伝えるための例です
+        主語や言い回しをそのまま固定する必要はありません
+
+      ・セッション開始時からその場所にいる場合は、
+        「あなたたちは今、操舵室にいます」のように始めてください
+
+      ・別の場所から移動して到着するシーンでは、
+        「あなたたちが操舵室に入ると、〜」のように、
+        到着と周囲の描写を自然につなげてください
+
+      ・同じ場所で続くシーンでは、新たに移動したように書かず、
+        「あなたたちがいる操舵室では、〜」のように始めてください
+
+      ・書き出しは、そのシーンのtrigger_conditionと
+        シーン間の移動・進行に合わせてください
+        移動経路が確定していない場合は現在地だけを伝え、
+        プレイヤーが選んでいない移動や行動を決めつけないでください
+
+      ・現在地を伝えた後に、場所全体の雰囲気を
+        簡潔に描写してください
+
+      ・個別の探索対象や会話相手の存在、位置、外見は
+        exploration_targetsのdescriptionに記載してください
+        画面上で場所の描写に追加するため、
+        read_aloud_textには重複して記載しないでください
+
+      ・見た目、明るさ、音、匂いなどから場面に合うものを選び、
+        世界観やシナリオの雰囲気に合わせてください
+        すべての感覚を毎回盛り込む必要はありません
+
+      ・到着した時点で分かる情報だけを含めてください
+        調べる、近づく、開ける、話しかけるなどの行動によって
+        初めて分かる情報は含めないでください
+
+      ・シーン開始時に選べるすべての行動について、
+        対象となる物、設備、人物をexploration_targetsに設定し、
+        visible_on_arrivalをtrueにしてください
+
+      ・探索や会話の後に初めて存在が分かる対象は、
+        visible_on_arrivalをfalseにしてください
+        発見条件をreveal_conditionと、
+        対応する行動選択肢のgm_guideに記載してください
+
+      ・物がなくなっている場合は、残された棚、包装、封印など、
+        実際にその場で調べられる対象を明確にしてください
+        なくなった物そのものを調べる内容にしないでください
+
+      ・exploration_targetsのdescriptionと、
+        対応するinvestigation_optionsのresultで
+        対象の位置や状態を一致させてください
+
+      ・操作によって状態が変化する場合は、
+        descriptionに操作前の状態を記載し、
+        「端末を操作すると画面が点く」など、
+        行動と状態変化のつながりをresultに記載してください
+
+      ・探索によって発見する物の細かな状態、不審な点、
+        隠された手がかりは、descriptionには含めず、
+        該当するinvestigation_optionsのresultに記載してください
+
+      ・例えば、祭壇のdescriptionには
+        「奥には石の祭壇が置かれている」と記載し、
+        「祭壇の石の角が一部欠けている」という情報は、
+        祭壇を調べたときのresultに記載してください
+
+      ・read_aloud_textとexploration_targetsで扱う場所や対象は、
+        そのシーンのlocation_positions、
+        npc_appearances、investigation_optionsと
+        矛盾しないようにしてください
+        別の場所や、まだ訪れていない場所の様子を混ぜないでください
+
+      ・シーン開始時から対面で会話できるNPCを
+        行動選択肢に含める場合は、
+        その人物をexploration_targetsにも設定し、
+        visible_on_arrivalをtrueにしてください
+        descriptionには、その人物がいる場所と
+        外から見える様子を短く記載してください
+
+      ・シーン開始時から通信で会話できるNPCを
+        行動選択肢に含める場合は、
+        通信端末などの通信手段をexploration_targetsに設定し、
+        visible_on_arrivalをtrueにしてください
+        descriptionには、通信相手と通信手段が分かる内容を記載し、
+        離れた場所にいる人物を、その場にいるように描写しないでください
+
+      ・対面する人物のdescriptionは、
+        npc_appearancesに設定した場所、行動、登場条件と
+        一致させてください
+        登場条件を満たしていない人物や、まだ発見していない人物は
+        visible_on_arrivalをfalseにし、
+        reveal_conditionに登場または発見の条件を記載してください
+
+      ・プレイヤーがまだ知らない真相、ゲームマスターへの指示、
+        探索結果の先出しは含めないでください
+
+      ・2〜4文、150文字以内を目安にしてください
+
+      【探索対象】
+
+      ・各シーンのexploration_targetsには、そのシーンで
+        プレイヤーが調べる、操作する、または会話する対象を
+        設定してください
+
+      ・物、設備、文書、人物など、
+        investigation_optionsで行動の対象となるものを
+        exploration_targetsに含めてください
+
+      ・keyには、同じシーン内で重複しない
+        英小文字のsnake_caseを設定してください
+        例えば、祭壇はaltar、保管庫端末はstorage_terminalとしてください
+
+      ・nameには、ゲームマスターとプレイヤーが理解できる
+        具体的な対象名を設定してください
+
+      ・visible_on_arrivalには、シーン開始時点で
+        対象の存在が分かる場合はtrue、
+        探索や会話の後に初めて存在が分かる場合はfalseを
+        設定してください
+
+      ・descriptionには、対象の存在、位置、外から見える状態を、
+        ゲームマスターがそのまま読み上げられる
+        1〜2文で記載してください
+
+      ・visible_on_arrivalがtrueのdescriptionは、
+        画面上でread_aloud_textの後に自動的に表示します
+        同じ対象の説明をread_aloud_textへ重複して記載しないでください
+
+      ・visible_on_arrivalがfalseの場合は、
+        reveal_conditionに、どの行動や情報によって
+        対象の存在が分かるのかを具体的に記載してください
+
+      ・visible_on_arrivalがtrueの場合は、
+        reveal_conditionを空文字にしてください
+
+      ・対象を調べて初めて分かる細かな状態、不審な点、
+        手がかりや真相はdescriptionへ含めず、
+        対応するinvestigation_optionsのresultへ記載してください
+
+      ・各investigation_optionsのtarget_keysには、
+        その行動が対象とするexploration_targetsのkeyを
+        一つ以上設定してください
+
+      ・target_keysには、同じシーンのexploration_targetsに
+        実際に存在するkeyだけを使用してください
+
+      ・複数の対象を一度に扱う行動では、
+        関係するすべてのkeyをtarget_keysへ設定してください
 
       【ゲームマスターが行うこと】
 
@@ -322,13 +471,48 @@ class ScenarioGenerator
       【プレイヤーの行動選択肢】
 
       ・investigation_optionsには、プレイヤーが選べる
-        具体的な行動を3つ設定してください
+        具体的な行動を各シーン2〜4つ設定してください
 
-      ・各選択肢には、label、result、gm_guideを
+      ・選択肢の数は、そのシーンの探索対象や会話相手、
+        判断できることの数に応じて決めてください
+        毎回同じ数にそろえる必要はありません
+
+      ・各選択肢は、対象、行動、得られる情報や進行上の役割に
+        意味のある違いを持たせてください
+        数を埋めるために、同じ行動の言い換えや
+        結果がほとんど同じ選択肢を追加しないでください
+
+      ・各選択肢には、label、target_keys、result、gm_guideを
         必ず設定してください
 
-      ・labelには、プレイヤーが行う行動を
-        20文字程度で記載してください
+      ・labelには「祭壇を調べる」「司祭に昨夜のことを尋ねる」など、
+        何を対象に、どのような行動をするのかを20文字程度で明記してください
+
+      ・target_keysには、その選択肢で調べる、操作する、
+        または会話する対象のkeyを一つ以上設定してください
+
+      ・target_keysには、同じシーンのexploration_targetsに
+        存在するkeyだけを設定してください
+
+      ・シーン開始時に選べる行動の対象は、
+        exploration_targetsのvisible_on_arrivalをtrueにし、
+        そのkeyを選択肢のtarget_keysに設定してください
+
+      ・visible_on_arrivalは、行動できるかどうかではなく、
+        シーン開始時に対象の存在が分かるかどうかで設定してください
+
+      ・対象は最初から見えていても、鍵や情報などが必要な行動は、
+        選べるようになる条件をgm_guideに記載してください
+
+      ・対象そのものが隠されている場合は、
+        visible_on_arrivalをfalseにし、
+        発見条件をreveal_conditionとgm_guideに記載してください
+
+      ・resultには、その対象にその行動をしたことで
+        初めて分かる情報を記載してください
+        exploration_targetsのdescriptionとresultで、
+        物の位置や状態、人物の配置が
+        矛盾しないようにしてください
 
       ・resultには、その行動を選んだ直後に、
         ゲームマスターがプレイヤーへそのまま
@@ -367,8 +551,11 @@ class ScenarioGenerator
         どの行動によって発見できるのかが
         分かるようにしてください
 
-      ・手がかりをプレイヤーへ伝える言葉を、
-        resultまたはgm_guideに含めてください
+      ・行動によって発見する手がかりをプレイヤーへ伝える文章は、
+        対応するinvestigation_optionsのresultに含めてください
+
+      ・gm_guideには、手がかりの渡し方や、
+        発見後の進行に関する補足を記載してください
 
       ・重要な手がかりを一つ見落としただけで
         進行不能にならないようにしてください
@@ -390,8 +577,6 @@ class ScenarioGenerator
 
       ・人物の生い立ちや基本プロフィールを
         繰り返さないでください
-
-      ・必要に応じて、短い台詞例を含めてください
 
       【イベント】
 
@@ -432,8 +617,8 @@ class ScenarioGenerator
 
       【シーンと各要素の関連付け】
 
-      ・npc_appearancesには、そのシーンに登場する
-        登場人物の情報を設定してください
+      ・npc_appearancesには、そのシーンに
+        対面または遠隔で関わる登場人物の情報を設定してください
 
       ・npc_positionには、実際に生成した
         登場人物のpositionを使用してください
@@ -451,7 +636,7 @@ class ScenarioGenerator
 
       ・該当する要素がない場合は、空の配列にしてください
 
-            【共通の場所データ】
+      【共通の場所データ】
 
       ・locationsには、シナリオで使用する場所をまとめてください
         部屋、村、森、遺跡など、ジャンルに合う場所を設定してください
@@ -478,15 +663,23 @@ class ScenarioGenerator
         外から見て分かる様子を1〜2文で記載してください
 
       ・全NPCを最初のシーンから登場させる必要はありません
-        npc_appearancesには、そのシーンに実際に登場するNPCだけを含めてください
+        npc_appearancesには、そのシーンに
+        対面または遠隔で実際に関わるNPCだけを含めてください
 
       【シーンごとのNPC配置】
 
-      ・npc_appearancesのlocation_positionには、
-        そのシーンでのNPCの居場所を必ず設定してください
+      ・npc_appearancesのparticipation_modeには、
+        対面ならin_person、遠隔ならremoteを設定してください
+
+      ・location_positionには、NPCが実際にいる場所のpositionを設定してください
         初期位置から変わらない場合も、その場所のpositionを設定してください
 
-      ・配置場所は、そのシーンのlocation_positionsに含めてください
+      ・in_personの場合、配置場所を
+        そのシーンのlocation_positionsに含めてください
+
+      ・remoteの場合、配置場所をそのシーンのlocation_positionsに含める必要はありません
+        NPCはlocation_positionに設定した別の場所から、
+        通信や通話などを通じてシーンへ参加するものとして扱ってください
 
       ・activityには、その場面での行動や様子を簡潔に記載してください
 
@@ -496,8 +689,16 @@ class ScenarioGenerator
       ・細かな行動予定表は作らず、GMが登場させるための目安にしてください
         前の場面での移動や出来事と、後の場面の配置を整合させてください
 
-      ・reactionにはGMが演じるための目的、態度、反応を記載してください
-        探索先を知らせる具体的な台詞は、exploration_cuesにまとめてください
+      ・reactionには、ゲームマスターが演じるための態度や
+        反応の方針を記載してください
+        プレイヤーへ読み上げる具体的な台詞は含めないでください
+
+      ・プレイヤーがNPCへ質問したときの回答は、
+        investigation_optionsのresultに記載してください
+
+      ・NPCがプレイヤーから質問されずに自発的に伝える探索案内は、
+        exploration_cuesに記載してください
+        trigger_conditionには、そのNPCが話し始める状況を明記してください
 
       【探索のきっかけ】
 
@@ -517,8 +718,17 @@ class ScenarioGenerator
       ・音、痕跡、書類、出来事などによるきっかけは、
         npc_positionをnullにしてください
 
+      ・exploration_cuesは、場所への到着、イベントの発生、
+        時間経過、プレイヤーが迷った場合など、
+        プレイヤーが行動選択肢を選ばなくても
+        提示できる情報にしてください
+
+      ・プレイヤーが選択する行動を
+        exploration_cuesのtrigger_conditionに設定しないでください
+
       ・trigger_conditionには、GMが情報を提示するタイミングを
-        「その場所に入ったとき」「昨夜について尋ねられたとき」など、
+        「その場所に入ったとき」「警告音が鳴ったとき」
+        「プレイヤーが行き先に迷ったとき」など、
         短く具体的に記載してください
 
       ・read_aloud_textには、プレイヤーへそのまま伝えられる
@@ -528,10 +738,44 @@ class ScenarioGenerator
       ・read_aloud_textにはGMへの指示や、その場面でまだ公開しない
         真相、犯人、NPCの秘密を混ぜないでください
 
+      ・プレイヤーの行動によって得られる情報はinvestigation_optionsにまとめてください
+
+      ・行動選択肢とは関係なく自動的に提示する補助情報だけを
+        exploration_cuesに記載してください
+
+      ・同じ行動や提示条件に対する情報を、
+        investigation_optionsとexploration_cuesの両方に
+        重複して記載しないでください
+        行動や条件の言い換えも、同じものとして扱ってください
+
+      ・ある行動のresultで探索先と調べる理由を伝えた場合、
+        その行動後に同じ情報を説明し直すexploration_cueは
+        作成しないでください
+
+      ・発見済みの情報を振り返ってもらうための案内は、
+        対応するgm_guideにまとめてください
+        exploration_cuesは、その情報をまだ得ていない場合でも
+        利用できる別の経路として設定してください
+
+      ・investigation_optionsのlabelに設定した行動への回答は、
+        プレイヤー向けの文章をresultに、
+        提示条件や進行上の補足をgm_guideにまとめてください
+
       ・重要な探索先には、特定のNPCとの会話をしなくても
-        気づける別のきっかけを必ず用意してください
-        代替のきっかけは、そのNPCとの会話や、その会話でしか得られない
-        情報を前提にしないでください
+        存在と調べる理由に気づける経路を用意してください
+        その経路はinvestigation_optionsまたはexploration_cuesに設定し、
+        そのNPCとの会話や、その会話でしか得られない情報を
+        前提にしないでください
+
+      ・investigation_optionsとは別の自動的な状況から
+        同じ探索先へ導くことは構いません
+        ただし、すでに探索先と調べる理由が分かっている場合に、
+        同じ案内を再度読み上げさせないよう、
+        exploration_cuesのtrigger_conditionに提示条件を明記してください
+
+      ・必要な経路がinvestigation_optionsで用意できている場合は、
+        数を埋めるためにexploration_cuesを追加しないでください
+        補助情報が不要なシーンでは空の配列にしてください
 
       ・未訪問の探索先を知らせるきっかけは、
         その探索先へ行く前に得られるようにしてください
@@ -582,6 +826,10 @@ class ScenarioGenerator
   def build_scene(scene_data)
     ScenarioGenerationSchema::Scene.new(
       **scene_data.merge(
+        exploration_targets: build_collection(
+          scene_data.fetch(:exploration_targets),
+          ScenarioGenerationSchema::ExplorationTarget
+        ),
         investigation_options: build_collection(
           scene_data.fetch(:investigation_options),
           ScenarioGenerationSchema::InvestigationOption

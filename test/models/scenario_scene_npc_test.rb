@@ -28,9 +28,12 @@ class ScenarioSceneNpcTest < ActiveSupport::TestCase
                     "はシーンと同じシナリオに属するNPCを指定してください"
   end
 
-  test "別のシナリオの場所には配置できない" do
+  test "遠隔参加でも別のシナリオの場所には配置できない" do
     appearance = scenario_scene_npcs(:one)
-    appearance.scenario_location = scenario_locations(:two)
+    appearance.assign_attributes(
+      scenario_location: scenario_locations(:two),
+      participation_mode: "remote"
+    )
 
     assert_not appearance.save
     assert_includes appearance.errors[:scenario_location],
@@ -63,5 +66,38 @@ class ScenarioSceneNpcTest < ActiveSupport::TestCase
     assert_nil appearance.scenario_location
     assert_nil appearance.appearance_condition
     assert_equal "穏やかに質問へ答える", appearance.reaction
+  end
+
+  test "参加方法の初期値は対面になる" do
+    appearance = scenario_scene_npcs(:one)
+
+    assert_equal "in_person", appearance.participation_mode
+  end
+
+  test "遠隔参加ならシーン外にいる同じシナリオのNPCを関連付けられる" do
+    remote_location = ScenarioLocation.create!(
+      scenario: scenarios(:one),
+      name: "貨物保管庫",
+      description: "操舵室から離れた場所にある保管庫。",
+      position: 2
+    )
+
+    appearance = scenario_scene_npcs(:one)
+    appearance.assign_attributes(
+      scenario_location: remote_location,
+      participation_mode: "remote"
+    )
+
+    assert appearance.save
+    assert_equal remote_location, appearance.reload.scenario_location
+    assert_equal "remote", appearance.participation_mode
+  end
+
+  test "定義されていない参加方法は保存できない" do
+    appearance = scenario_scene_npcs(:one)
+    appearance.participation_mode = "unknown"
+
+    assert_not appearance.save
+    assert appearance.errors[:participation_mode].present?
   end
 end

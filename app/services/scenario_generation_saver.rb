@@ -97,6 +97,8 @@ class ScenarioGenerationSaver
 
   def save_scenes
     generation_result.scenes.each_with_object({}) do |scene_data, records|
+      validate_investigation_option_target_keys!(scene_data)
+
       scene = scenario.scenario_scenes.create!(
         title: scene_data.title,
         purpose: scene_data.purpose,
@@ -104,6 +106,9 @@ class ScenarioGenerationSaver
         read_aloud_text: scene_data.read_aloud_text,
         gm_actions: scene_data.gm_actions,
         player_questions: scene_data.player_questions,
+        exploration_targets: serialize_exploration_targets(
+          scene_data.exploration_targets
+        ),
         investigation_options: serialize_investigation_options(
           scene_data.investigation_options
         ),
@@ -120,10 +125,44 @@ class ScenarioGenerationSaver
     end
   end
 
+  def serialize_exploration_targets(exploration_targets)
+    exploration_targets.map do |exploration_target|
+      {
+        key: exploration_target.key,
+        name: exploration_target.name,
+        visible_on_arrival: exploration_target.visible_on_arrival,
+        description: exploration_target.description,
+        reveal_condition: exploration_target.reveal_condition
+      }
+    end
+  end
+
+  def validate_investigation_option_target_keys!(scene_data)
+    target_keys = scene_data.exploration_targets.map(&:key)
+
+    if target_keys.uniq.size != target_keys.size
+      raise ArgumentError, "探索対象のキーが重複しています"
+    end
+
+    exploration_targets_by_key =
+      scene_data.exploration_targets.index_by(&:key)
+
+    scene_data.investigation_options.each do |investigation_option|
+      if investigation_option.target_keys.blank?
+        raise ArgumentError, "行動選択肢の探索対象が設定されていません"
+      end
+
+      investigation_option.target_keys.each do |target_key|
+        exploration_targets_by_key.fetch(target_key)
+      end
+    end
+  end
+
   def serialize_investigation_options(investigation_options)
     option_data = investigation_options.map do |investigation_option|
       {
         label: investigation_option.label,
+        target_keys: investigation_option.target_keys,
         result: investigation_option.result,
         gm_guide: investigation_option.gm_guide
       }
@@ -190,6 +229,7 @@ class ScenarioGenerationSaver
         scenario_location: locations_by_position.fetch(
           appearance.location_position
         ),
+        participation_mode: appearance.participation_mode,
         activity: appearance.activity,
         appearance_condition: appearance.appearance_condition,
         reaction: appearance.reaction
