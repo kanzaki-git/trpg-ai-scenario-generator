@@ -234,8 +234,11 @@ class ScenarioGenerationStatusUpdaterTest < ActiveSupport::TestCase
 
     saving_error = ActiveRecord::RecordInvalid.new(invalid_record)
 
+    scenario_with_unsaved_changes = @scenario
+
     failing_saver = Object.new
     failing_saver.define_singleton_method(:call) do
+      scenario_with_unsaved_changes.title = "保存途中のタイトル"
       raise saving_error
     end
 

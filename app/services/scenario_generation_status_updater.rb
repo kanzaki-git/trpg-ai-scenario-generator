@@ -82,6 +82,8 @@ class ScenarioGenerationStatusUpdater
       "#{e.class} #{e.message}"
     )
 
+    scenario.reload
+
     fail_generation(
       openai_status: :save_error,
       error: e
