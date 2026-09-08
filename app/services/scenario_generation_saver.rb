@@ -229,6 +229,7 @@ class ScenarioGenerationSaver
         scenario_location: locations_by_position.fetch(
           appearance.location_position
         ),
+        participation_mode: appearance.participation_mode,
         activity: appearance.activity,
         appearance_condition: appearance.appearance_condition,
         reaction: appearance.reaction

@@ -556,6 +556,64 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "遠隔参加のNPCを物理的な居場所と区別して表示できる" do
+    scenario = create_scenario
+
+    bridge = scenario.scenario_locations.create!(
+      name: "操舵室",
+      description: "船を操作する区画。",
+      position: 1
+    )
+
+    cargo_hold = scenario.scenario_locations.create!(
+      name: "貨物保管庫",
+      description: "船の荷物を保管する区画。",
+      position: 2
+    )
+
+    npc = scenario.scenario_npcs.create!(
+      name: "船長",
+      description: "調査船の船長。",
+      initial_location: cargo_hold,
+      initial_activity: "鉱石標本を確認している",
+      position: 1
+    )
+
+    scene = scenario.scenario_scenes.create!(
+      title: "操舵室からの通信",
+      position: 1
+    )
+
+    scene.scenario_scene_locations.create!(
+      scenario_location: bridge
+    )
+
+    scene.scenario_scene_npcs.create!(
+      scenario_npc: npc,
+      scenario_location: cargo_hold,
+      participation_mode: "remote",
+      activity: "貨物保管庫で鉱石標本を確認している",
+      appearance_condition: "船内通信が接続されたとき",
+      reaction: "通信越しに落ち着いて状況を説明する"
+    )
+
+    get scenes_scenario_url(scenario)
+
+    assert_response :success
+
+    assert_select "summary", text: /このシーンに関わる人物/
+    assert_select "article", text: /船長/ do
+      assert_select ".badge", text: "遠隔"
+      assert_select "dt", text: "実際の居場所"
+      assert_select "dd", text: "貨物保管庫"
+      assert_select "dt", text: "別の場所での様子"
+      assert_select "dd p",
+                    text: "貨物保管庫で鉱石標本を確認している"
+      assert_select "dt", text: "参加・登場のタイミング"
+      assert_select "dd p", text: "船内通信が接続されたとき"
+    end
+  end
+
   test "探索の台詞と描写をGM向け情報と分けて表示できる" do
     scenario = create_scenario
 

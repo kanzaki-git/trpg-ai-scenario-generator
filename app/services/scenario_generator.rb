@@ -350,18 +350,23 @@ class ScenarioGenerator
         矛盾しないようにしてください
         別の場所や、まだ訪れていない場所の様子を混ぜないでください
 
-      ・シーン開始時から会話できるNPCを行動選択肢に含める場合は、
+      ・シーン開始時から対面で会話できるNPCを
+        行動選択肢に含める場合は、
         その人物をexploration_targetsにも設定し、
         visible_on_arrivalをtrueにしてください
-        descriptionには、その人物の居場所と外から見える様子を
-        短く記載してください
+        descriptionには、その人物がいる場所と
+        外から見える様子を短く記載してください
 
-      ・通信を通じて会話する場合は、
-        descriptionから相手と通信手段が分かるようにし、
+      ・シーン開始時から通信で会話できるNPCを
+        行動選択肢に含める場合は、
+        通信端末などの通信手段をexploration_targetsに設定し、
+        visible_on_arrivalをtrueにしてください
+        descriptionには、通信相手と通信手段が分かる内容を記載し、
         離れた場所にいる人物を、その場にいるように描写しないでください
 
-      ・人物のdescriptionは、npc_appearancesに設定した場所、
-        行動、登場条件と一致させてください
+      ・対面する人物のdescriptionは、
+        npc_appearancesに設定した場所、行動、登場条件と
+        一致させてください
         登場条件を満たしていない人物や、まだ発見していない人物は
         visible_on_arrivalをfalseにし、
         reveal_conditionに登場または発見の条件を記載してください
@@ -612,8 +617,8 @@ class ScenarioGenerator
 
       【シーンと各要素の関連付け】
 
-      ・npc_appearancesには、そのシーンに登場する
-        登場人物の情報を設定してください
+      ・npc_appearancesには、そのシーンに
+        対面または遠隔で関わる登場人物の情報を設定してください
 
       ・npc_positionには、実際に生成した
         登場人物のpositionを使用してください
@@ -658,15 +663,23 @@ class ScenarioGenerator
         外から見て分かる様子を1〜2文で記載してください
 
       ・全NPCを最初のシーンから登場させる必要はありません
-        npc_appearancesには、そのシーンに実際に登場するNPCだけを含めてください
+        npc_appearancesには、そのシーンに
+        対面または遠隔で実際に関わるNPCだけを含めてください
 
       【シーンごとのNPC配置】
 
-      ・npc_appearancesのlocation_positionには、
-        そのシーンでのNPCの居場所を必ず設定してください
+      ・npc_appearancesのparticipation_modeには、
+        対面ならin_person、遠隔ならremoteを設定してください
+
+      ・location_positionには、NPCが実際にいる場所のpositionを設定してください
         初期位置から変わらない場合も、その場所のpositionを設定してください
 
-      ・配置場所は、そのシーンのlocation_positionsに含めてください
+      ・in_personの場合、配置場所を
+        そのシーンのlocation_positionsに含めてください
+
+      ・remoteの場合、配置場所をそのシーンのlocation_positionsに含める必要はありません
+        NPCはlocation_positionに設定した別の場所から、
+        通信や通話などを通じてシーンへ参加するものとして扱ってください
 
       ・activityには、その場面での行動や様子を簡潔に記載してください
 

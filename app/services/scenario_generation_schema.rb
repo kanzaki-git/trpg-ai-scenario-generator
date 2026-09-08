@@ -27,6 +27,7 @@ class ScenarioGenerationSchema < OpenAI::BaseModel
   class SceneNpc < OpenAI::BaseModel
     required :npc_position, Integer
     required :location_position, Integer
+    required :participation_mode, String
     required :activity, String
     required :appearance_condition, String
     required :reaction, String

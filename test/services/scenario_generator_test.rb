@@ -69,6 +69,22 @@ class ScenarioGeneratorTest < ActiveSupport::TestCase
     assert_includes prompt, "【探索対象】"
     assert_includes prompt, "visible_on_arrival"
     assert_includes prompt, "target_keys"
+
+    assert_includes prompt, "participation_modeには、"
+    assert_includes(
+      prompt,
+      "対面ならin_person、遠隔ならremoteを設定してください"
+    )
+
+    assert_includes(
+      prompt,
+      "location_positionには、NPCが実際にいる場所のpositionを設定してください"
+    )
+
+    assert_includes(
+      prompt,
+      "remoteの場合、配置場所をそのシーンのlocation_positionsに含める必要はありません"
+    )
   end
 
   test "生成受付番号がなければエラーになる" do
