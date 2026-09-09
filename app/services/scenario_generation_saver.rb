@@ -200,6 +200,11 @@ class ScenarioGenerationSaver
       )
       save_scene_clues(scene, scene_data, clues_by_position)
       save_scene_events(scene, scene_data, events_by_position)
+      save_scene_transitions(
+        scene,
+        scene_data,
+        scenes_by_position
+      )
       save_exploration_cues(
         scene,
         scene_data,
@@ -241,6 +246,24 @@ class ScenarioGenerationSaver
     scene_data.clue_positions.each do |clue_position|
       scene.scenario_scene_clues.create!(
         scenario_clue: clues_by_position.fetch(clue_position)
+      )
+    end
+  end
+
+  def save_scene_transitions(
+    scene,
+    scene_data,
+    scenes_by_position
+  )
+    scene_data.transitions.each_with_index do |transition_data, index|
+      destination_information = scenes_by_position.fetch(
+        transition_data.destination_scene_position
+      )
+
+      scene.outgoing_transitions.create!(
+        destination_scene: destination_information.fetch(:record),
+        condition: transition_data.condition,
+        position: index + 1
       )
     end
   end

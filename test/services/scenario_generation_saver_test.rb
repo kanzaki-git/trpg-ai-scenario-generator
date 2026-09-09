@@ -64,6 +64,7 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
     assert_equal "宝石につながる手がかりを見つける", scene.purpose
     assert_equal 10, scene.estimated_time
     assert_equal 1, scene.position
+    assert_empty scene.outgoing_transitions
     assert_equal(
       "ホールの奥に、書斎へ続く扉があります。",
       scene.read_aloud_text
@@ -324,6 +325,113 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
     assert_equal 3, appearance.scenario_location.position
   end
 
+  test "複数の移動先と前のシーンへ戻る移動を保存できる" do
+    first_scene = build_scene(
+      transitions: [
+        ScenarioGenerationSchema::SceneTransition.new(
+          condition: "鍵を使って書斎へ入る",
+          destination_scene_position: 2
+        ),
+        ScenarioGenerationSchema::SceneTransition.new(
+          condition: "窓の足跡を追って庭園へ向かう",
+          destination_scene_position: 3
+        )
+      ]
+    )
+
+    second_scene = build_scene(
+      title: "書斎の調査",
+      position: 2,
+      transitions: [
+        ScenarioGenerationSchema::SceneTransition.new(
+          condition: "執事へ調査結果を報告する",
+          destination_scene_position: 1
+        )
+      ]
+    )
+
+    third_scene = build_scene(
+      title: "庭園の調査",
+      position: 3
+    )
+
+    generation_result = build_generation_result(
+      scene_data: first_scene
+    )
+    generation_result.scenes.push(second_scene, third_scene)
+
+    ScenarioGenerationSaver.new(
+      scenario: @scenario,
+      generation_result: generation_result
+    ).call
+
+    scenes_by_position =
+      @scenario.reload.scenario_scenes.index_by(&:position)
+
+    saved_first_scene = scenes_by_position.fetch(1)
+    saved_second_scene = scenes_by_position.fetch(2)
+    saved_third_scene = scenes_by_position.fetch(3)
+
+    forward_transitions =
+      saved_first_scene.outgoing_transitions.to_a
+
+    assert_equal 2, forward_transitions.size
+    assert_equal(
+      [
+        "鍵を使って書斎へ入る",
+        "窓の足跡を追って庭園へ向かう"
+      ],
+      forward_transitions.map(&:condition)
+    )
+    assert_equal(
+      [ 2, 3 ],
+      forward_transitions.map do |transition|
+        transition.destination_scene.position
+      end
+    )
+    assert_equal [ 1, 2 ], forward_transitions.map(&:position)
+
+    backward_transition =
+      saved_second_scene.outgoing_transitions.first
+
+    assert_equal(
+      "執事へ調査結果を報告する",
+      backward_transition.condition
+    )
+    assert_equal saved_first_scene,
+                 backward_transition.destination_scene
+
+    assert_empty saved_third_scene.outgoing_transitions
+  end
+
+  test "存在しない移動先が指定された場合は保存しない" do
+    generation_result = build_generation_result
+
+    generation_result.scenes.first.transitions = [
+      ScenarioGenerationSchema::SceneTransition.new(
+        condition: "存在しない部屋へ向かう",
+        destination_scene_position: 999
+      )
+    ]
+
+    assert_no_difference [
+      "ScenarioScene.count",
+      "ScenarioSceneTransition.count"
+    ] do
+      assert_raises(KeyError) do
+        ScenarioGenerationSaver.new(
+          scenario: @scenario,
+          generation_result: generation_result
+        ).call
+      end
+    end
+
+    @scenario.reload
+
+    assert_nil @scenario.title
+    assert_empty @scenario.scenario_scenes
+  end
+
   private
 
   def build_generation_result(clue_positions: [ 1 ], scene_data: nil)
@@ -382,10 +490,13 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
   def build_scene(
     clue_positions: [ 1 ],
     npc_location_position: 1,
-    participation_mode: "in_person"
+    participation_mode: "in_person",
+    title: "屋敷の調査",
+    position: 1,
+    transitions: []
   )
     ScenarioGenerationSchema::Scene.new(
-      title: "屋敷の調査",
+      title: title,
       purpose: "宝石につながる手がかりを見つける",
       estimated_time: 10,
       read_aloud_text: "ホールの奥に、書斎へ続く扉があります。",
@@ -410,6 +521,7 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
       ],
       trigger_condition: "屋敷へ到着したとき",
       transition_condition: "鍵を発見したとき",
+      transitions: transitions,
       hint: "机の周辺に注目させる",
       location_positions: [ 1, 2 ],
       npc_appearances: [
@@ -425,7 +537,7 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
       exploration_cues: build_exploration_cues,
       clue_positions: clue_positions,
       event_positions: [ 1 ],
-      position: 1
+      position: position
     )
   end
 
