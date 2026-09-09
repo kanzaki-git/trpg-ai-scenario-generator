@@ -12,6 +12,18 @@ class ScenarioScene < ApplicationRecord
   has_many :scenario_events, through: :scenario_scene_events
   has_many :scenario_locations, through: :scenario_scene_locations
 
+  has_many :outgoing_transitions,
+           -> { order(:position) },
+           class_name: "ScenarioSceneTransition",
+           foreign_key: :source_scene_id,
+           inverse_of: :source_scene,
+           dependent: :destroy
+  has_many :incoming_transitions,
+           class_name: "ScenarioSceneTransition",
+           foreign_key: :destination_scene_id,
+           inverse_of: :destination_scene,
+           dependent: :destroy
+
   def exploration_target_items
     required_keys = %w[
       key
