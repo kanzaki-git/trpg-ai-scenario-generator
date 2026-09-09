@@ -417,6 +417,116 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
     assert_select "h1", text: "シーン進行"
   end
 
+  test "シーンの移動条件と複数の移動先を表示できる" do
+    scenario = create_scenario
+
+    first_scene = scenario.scenario_scenes.create!(
+      title: "操舵室の調査",
+      transition_condition: "調査先を決めたとき",
+      position: 1
+    )
+
+    second_scene = scenario.scenario_scenes.create!(
+      title: "機関室の調査",
+      position: 2
+    )
+
+    third_scene = scenario.scenario_scenes.create!(
+      title: "AIコア区画の調査",
+      position: 3
+    )
+
+    first_scene.outgoing_transitions.create!(
+      destination_scene: second_scene,
+      condition: "停電の原因を調べに機関室へ向かう",
+      position: 1
+    )
+
+    first_scene.outgoing_transitions.create!(
+      destination_scene: third_scene,
+      condition: "異常信号を追ってAIコア区画へ向かう",
+      position: 2
+    )
+
+    get scenes_scenario_url(scenario)
+
+    assert_response :success
+
+    assert_select "main[data-controller='scene-jump']"
+    assert_select "details#scene-1"
+    assert_select "details#scene-2"
+    assert_select "details#scene-3"
+
+    assert_select ".scene-transitions", count: 1 do
+      assert_select "h3", text: "次に進む"
+      assert_select "th", text: "プレイヤーの行動・状況"
+      assert_select "th", text: "移動先"
+
+      assert_select(
+        "p",
+        text: "停電の原因を調べに機関室へ向かう"
+      )
+      assert_select(
+        "p",
+        text: "異常信号を追ってAIコア区画へ向かう"
+      )
+
+      assert_select "span", text: /シーン2：\s*機関室の調査/
+      assert_select "span", text: /シーン3：\s*AIコア区画の調査/
+
+      assert_select "a[href='#scene-2']",
+                    text: "このシーンを開く" do |links|
+        assert_equal(
+          "click->scene-jump#open",
+          links.first["data-action"]
+        )
+        assert_equal(
+          "scene-2",
+          links.first["data-scene-jump-target-id-param"]
+        )
+      end
+
+      assert_select "a[href='#scene-3']",
+                    text: "このシーンを開く"
+    end
+
+    assert_select(
+      "h3",
+      text: "次のシーンへ進む条件",
+      count: 0
+    )
+  end
+
+  test "移動情報のない既存シーンも従来の条件を表示できる" do
+    scenario = create_scenario
+
+    scenario.scenario_scenes.create!(
+      title: "既存の調査シーン",
+      transition_condition: "鍵を発見したとき",
+      position: 1
+    )
+
+    scenario.scenario_scenes.create!(
+      title: "移動条件がないシーン",
+      transition_condition: nil,
+      position: 2
+    )
+
+    get scenes_scenario_url(scenario)
+
+    assert_response :success
+
+    assert_select "h3",
+                  text: "次のシーンへ進む条件",
+                  count: 1
+    assert_select "p", text: "鍵を発見したとき"
+    assert_select(
+      "a",
+      text: "このシーンを開く",
+      count: 0
+    )
+  end
+
   test "ログイン中のユーザーは真相とエンディングを表示できる" do
     scenario = create_scenario
 

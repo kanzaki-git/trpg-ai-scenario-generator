@@ -57,6 +57,11 @@ class ScenarioGenerationSchema < OpenAI::BaseModel
     required :gm_guide, String
   end
 
+  class SceneTransition < OpenAI::BaseModel
+    required :condition, String
+    required :destination_scene_position, Integer
+  end
+
   class Scene < OpenAI::BaseModel
     required :title, String
     required :purpose, String
@@ -68,6 +73,7 @@ class ScenarioGenerationSchema < OpenAI::BaseModel
     required :investigation_options, OpenAI::ArrayOf[InvestigationOption]
     required :trigger_condition, String
     required :transition_condition, String
+    required :transitions, OpenAI::ArrayOf[SceneTransition]
     required :hint, String
     required :location_positions, OpenAI::ArrayOf[Integer]
     required :npc_appearances, OpenAI::ArrayOf[SceneNpc]

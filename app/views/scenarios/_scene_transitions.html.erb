@@ -1,0 +1,79 @@
+<% if scene.outgoing_transitions.any? %>
+  <section class="scene-transitions">
+    <h3 class="h5 fw-bold mb-3">
+      次に進む
+    </h3>
+
+    <div class="table-responsive">
+      <table class="table table-bordered align-middle mb-0">
+        <thead class="table-success">
+          <tr>
+            <th scope="col">
+              プレイヤーの行動・状況
+            </th>
+            <th scope="col">
+              移動先
+            </th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <% scene.outgoing_transitions.each do |transition| %>
+            <% destination = transition.destination_scene %>
+
+            <tr>
+              <td class="lh-lg text-break">
+                <%= simple_format(
+                      transition.condition,
+                      class: "mb-0"
+                    ) %>
+              </td>
+
+              <td>
+                <div
+                  class="
+                    d-flex
+                    flex-column
+                    align-items-start
+                    gap-2
+                  "
+                >
+                  <span class="fw-semibold">
+                    シーン<%= destination.position %>：
+                    <%= destination.title %>
+                  </span>
+
+                  <%= link_to(
+                        "このシーンを開く",
+                        "#scene-#{destination.position}",
+                        class: "btn btn-outline-success btn-sm",
+                        data: {
+                          action: "click->scene-jump#open",
+                          scene_jump_target_id_param:
+                            "scene-#{destination.position}"
+                        }
+                      ) %>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+<% elsif scene.transition_condition.present? %>
+  <section>
+    <h3 class="h5 fw-bold mb-3">
+      次のシーンへ進む条件
+    </h3>
+
+    <div class="alert alert-success mb-0">
+      <div class="lh-lg text-break">
+        <%= simple_format(
+              scene.transition_condition,
+              class: "mb-0"
+            ) %>
+      </div>
+    </div>
+  </section>
+<% end %>

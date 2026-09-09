@@ -91,6 +91,7 @@ class ScenariosController < ApplicationController
         :scenario_clues,
         :scenario_events,
         :scenario_locations,
+        outgoing_transitions: :destination_scene,
         scenario_scene_npcs: [
           :scenario_location,
           :scenario_npc

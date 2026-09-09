@@ -85,6 +85,27 @@ class ScenarioGeneratorTest < ActiveSupport::TestCase
       prompt,
       "remoteの場合、配置場所をそのシーンのlocation_positionsに含める必要はありません"
     )
+
+    assert_includes(
+      prompt,
+      "conditionとdestination_scene_positionを"
+    )
+    assert_includes(
+      prompt,
+      "現在のシーン自身のpositionは、"
+    )
+    assert_includes(
+      prompt,
+      "移動先シーンのtrigger_conditionと、"
+    )
+    assert_includes(
+      prompt,
+      "前のシーンへ戻れるようにしても構いません"
+    )
+    assert_includes(
+      prompt,
+      "transitionsを空の配列にしてください"
+    )
   end
 
   test "生成受付番号がなければエラーになる" do
@@ -177,6 +198,38 @@ class ScenarioGeneratorTest < ActiveSupport::TestCase
       ScenarioGenerationSchema::Ending,
       result.endings.first
     )
+  end
+
+  test "JSONからシーン遷移を作成する" do
+    generation_data = valid_generation_data
+
+    destination_scene = generation_data[:scenes].first.deep_dup
+    destination_scene[:title] = "書斎の調査"
+    destination_scene[:position] = 2
+    destination_scene[:transitions] = []
+
+    generation_data[:scenes] << destination_scene
+    generation_data[:scenes].first[:transitions] = [
+      {
+        condition: "鍵を使って書斎へ入る",
+        destination_scene_position: 2
+      }
+    ]
+
+    response = response_with_text(
+      JSON.generate(generation_data)
+    )
+
+    result = @generator.extract_background_result(response)
+    transition = result.scenes.first.transitions.first
+
+    assert_instance_of(
+      ScenarioGenerationSchema::SceneTransition,
+      transition
+    )
+    assert_equal "鍵を使って書斎へ入る", transition.condition
+    assert_equal 2, transition.destination_scene_position
+    assert_empty result.scenes.second.transitions
   end
 
   test "生成結果のテキストが空の場合はエラーになる" do
@@ -407,6 +460,7 @@ end
           ],
           trigger_condition: "屋敷へ到着したとき",
           transition_condition: "鍵を発見したとき",
+          transitions: [],
           hint: "机の周辺に注目させる",
           location_positions: [ 1, 2 ],
           npc_appearances: [

@@ -62,10 +62,11 @@
         </section>
       <% end %>
 
-      <main>
+      <main data-controller="scene-jump">
         <% if @scenario_scenes.any? %>
           <% @scenario_scenes.each_with_index do |scene, scene_index| %>
             <details
+              id="scene-<%= scene.position %>"
               class="card border-0 shadow-sm mb-4"
               <%= "open" if scene_index.zero? %>
             >
@@ -232,22 +233,7 @@
                   </section>
                 <% end %>
 
-                <% if scene.transition_condition.present? %>
-                  <section>
-                    <h3 class="h5 fw-bold mb-3">
-                      次のシーンへ進む条件
-                    </h3>
-
-                    <div class="alert alert-success mb-0">
-                      <div class="lh-lg text-break">
-                        <%= simple_format(
-                              scene.transition_condition,
-                              class: "mb-0"
-                            ) %>
-                      </div>
-                    </div>
-                  </section>
-                <% end %>
+                <%= render "scene_transitions", scene: scene %>
               </div>
             </details>
           <% end %>
