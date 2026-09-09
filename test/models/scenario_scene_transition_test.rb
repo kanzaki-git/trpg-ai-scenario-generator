@@ -22,11 +22,11 @@ class ScenarioSceneTransitionTest < ActiveSupport::TestCase
     assert @transition.save, @transition.errors.full_messages.join(", ")
 
     assert_equal(
-      [@transition],
+      [ @transition ],
       @source_scene.reload.outgoing_transitions.to_a
     )
     assert_equal(
-      [@transition],
+      [ @transition ],
       @destination_scene.reload.incoming_transitions.to_a
     )
   end
