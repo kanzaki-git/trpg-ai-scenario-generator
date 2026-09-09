@@ -601,19 +601,53 @@ class ScenarioGenerator
 
       ・80文字以内を目安にしてください
 
-      【次のシーンへ進む条件】
+      【次に進めるシーンと移動条件】
 
-      ・transition_conditionには、プレイヤーが
-        何を発見、理解、決定、実行したら
-        次へ進むのかを記載してください
+      ・transition_conditionには、そのシーンから
+        次へ進める条件全体を1〜2文で要約してください
 
-      ・1〜2文にまとめてください
+      ・transitionsには、プレイヤーの行動や状況ごとに、
+        conditionとdestination_scene_positionを
+        セットで設定してください
 
-      ・ゲームマスターが条件を達成したか
-        判断できる内容にしてください
+      ・conditionには、プレイヤーが何を発見、理解、
+        決定、実行した場合の移動なのかを記載してください
+
+      ・ゲームマスターが条件を満たしたか
+        判断できる具体的な内容にしてください
+
+      ・destination_scene_positionには、移動先として
+        実際に生成したシーンのpositionを設定してください
+
+      ・現在のシーン自身のpositionは、
+        destination_scene_positionに設定しないでください
+
+      ・移動先が複数ある場合は、それぞれのconditionと
+        destination_scene_positionをtransitionsに設定してください
+
+      ・conditionは、現在のシーンで得られる探索結果、
+        手がかり、イベント、NPCの案内と矛盾させないでください
+
+      ・移動先シーンのtrigger_conditionと、
+        移動元のconditionを一致させてください
+
+      ・同じ場所を扱うシーンが複数ある場合は、
+        物語の進行段階に合うシーンのpositionを選んでください
+
+      ・物語上必要であれば、現在より小さいpositionを指定して
+        前のシーンへ戻れるようにしても構いません
+
+      ・戻ったことで状況が変化する場合は、
+        元のシーンではなく、変化後を扱う別のシーンを
+        移動先にしてください
+
+      ・進行につながらない循環を作らないでください
 
       ・特定の手がかりを得られなかった場合でも、
         別の行動やヒントで進めるようにしてください
+
+      ・次に進めるシーンがない場合は、
+        transitionsを空の配列にしてください
 
       【シーンと各要素の関連付け】
 
@@ -833,6 +867,10 @@ class ScenarioGenerator
         investigation_options: build_collection(
           scene_data.fetch(:investigation_options),
           ScenarioGenerationSchema::InvestigationOption
+        ),
+        transitions: build_collection(
+          scene_data.fetch(:transitions),
+          ScenarioGenerationSchema::SceneTransition
         ),
         npc_appearances: build_collection(
           scene_data.fetch(:npc_appearances),
