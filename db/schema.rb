@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_09_164428) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_10_195800) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -35,8 +35,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_09_164428) do
   create_table "scenario_events", force: :cascade do |t|
     t.text "content"
     t.datetime "created_at", null: false
+    t.text "gm_actions"
     t.integer "position"
+    t.text "post_event_changes"
+    t.text "read_aloud_text"
     t.bigint "scenario_id", null: false
+    t.string "title"
     t.text "trigger_condition"
     t.datetime "updated_at", null: false
     t.index ["scenario_id"], name: "index_scenario_events_on_scenario_id"

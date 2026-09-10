@@ -1,7 +1,6 @@
 <% if scene.player_questions.present? ||
       scene.scenario_scene_npcs.any? ||
-      scene.scenario_clues.any? ||
-      scene.scenario_events.any? %>
+      scene.scenario_clues.any? %>
   <section class="mb-5">
     <h3 class="h5 fw-bold mb-2">
       このシーンの補助情報
@@ -115,48 +114,6 @@
                     class: "mb-0"
                   ) %>
             </div>
-          <% end %>
-        </div>
-      </details>
-    <% end %>
-
-    <% if scene.scenario_events.any? %>
-      <details class="border rounded-3 mb-3">
-        <summary
-          class="fw-bold p-3"
-          style="cursor: pointer;"
-        >
-          このシーンで発生するイベント
-          （<%= scene.scenario_events.size %>件）
-        </summary>
-
-        <div class="border-top p-4">
-          <% scene.scenario_events
-                  .sort_by { |event| event.position.to_i }
-                  .each do |event| %>
-            <article class="mb-4">
-              <div class="lh-lg text-break">
-                <%= simple_format(
-                      event.content,
-                      class: "mb-0"
-                    ) %>
-              </div>
-
-              <% if event.trigger_condition.present? %>
-                <div class="alert alert-warning mt-3 mb-0">
-                  <h4 class="h6 fw-bold mb-2">
-                    発生条件
-                  </h4>
-
-                  <div class="lh-lg text-break">
-                    <%= simple_format(
-                          event.trigger_condition,
-                          class: "mb-0"
-                        ) %>
-                  </div>
-                </div>
-              <% end %>
-            </article>
           <% end %>
         </div>
       </details>

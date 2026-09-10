@@ -527,6 +527,141 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
     )
   end
 
+  test "シーン内に複数イベントの発生条件と詳細を区別して表示できる" do
+    scenario = create_scenario
+
+    scene = scenario.scenario_scenes.create!(
+      title: "操舵室の調査",
+      position: 1
+    )
+
+    power_failure = scenario.scenario_events.create!(
+      title: "非常電源の停止",
+      trigger_condition: "保管庫端末の記録を確認した後",
+      read_aloud_text: "突然、頭上の照明が消えます。",
+      gm_actions: "機関室で電源を復旧できることを伝える。",
+      post_event_changes: "復旧するまで端末を使用できない。",
+      position: 1
+    )
+
+    warning_signal = scenario.scenario_events.create!(
+      title: "正体不明の信号",
+      trigger_condition: "警告音が3回鳴ったとき",
+      read_aloud_text: "通信機から短い信号音が聞こえます。",
+      gm_actions: "通信記録を調査できることを伝える。",
+      post_event_changes: "AIコア区画への経路が判明する。",
+      position: 2
+    )
+
+    scene.scenario_scene_events.create!(
+      scenario_event: power_failure
+    )
+    scene.scenario_scene_events.create!(
+      scenario_event: warning_signal
+    )
+
+    get scenes_scenario_url(scenario)
+
+    assert_response :success
+
+    assert_select ".scene-events", count: 1 do
+      assert_select "h3",
+                    text: "GM向け：このシーンのイベント"
+      assert_select "article.scene-event", count: 2
+
+      assert_select "h4", text: "非常電源の停止"
+      assert_select "p",
+                    text: "保管庫端末の記録を確認した後"
+      assert_select "p",
+                    text: "突然、頭上の照明が消えます。"
+      assert_select "p",
+                    text: "機関室で電源を復旧できることを伝える。"
+      assert_select "p",
+                    text: "復旧するまで端末を使用できない。"
+
+      assert_select "h4", text: "正体不明の信号"
+      assert_select "p",
+                    text: "警告音が3回鳴ったとき"
+      assert_select "p",
+                    text: "通信機から短い信号音が聞こえます。"
+      assert_select "p",
+                    text: "通信記録を調査できることを伝える。"
+      assert_select "p",
+                    text: "AIコア区画への経路が判明する。"
+
+      assert_select "h5",
+                    text: "PL向けの読み上げ文",
+                    count: 2
+      assert_select "h5",
+                    text: "GM向けの対応",
+                    count: 2
+      assert_select "h5",
+                    text: "発生後の変化",
+                    count: 2
+    end
+  end
+
+  test "既存形式のイベント内容もシーン内に表示できる" do
+    scenario = create_scenario
+
+    scene = scenario.scenario_scenes.create!(
+      title: "既存の調査シーン",
+      position: 1
+    )
+
+    event = scenario.scenario_events.create!(
+      content: "停電が発生し、周囲が暗くなる。",
+      trigger_condition: "机を調べた後",
+      position: 1
+    )
+
+    scene.scenario_scene_events.create!(
+      scenario_event: event
+    )
+
+    get scenes_scenario_url(scenario)
+
+    assert_response :success
+
+    assert_select ".scene-events", count: 1 do
+      assert_select "h4", text: "イベント 1"
+      assert_select "p", text: "机を調べた後"
+      assert_select "h5", text: "イベント内容"
+      assert_select "p",
+                    text: "停電が発生し、周囲が暗くなる。"
+    end
+  end
+
+  test "イベントがないシーンに別シナリオのイベントを表示しない" do
+    scenario = create_scenario
+
+    scenario.scenario_scenes.create!(
+      title: "イベントがないシーン",
+      position: 1
+    )
+
+    other_scenario = create_scenario(
+      title: "別のシナリオ"
+    )
+
+    other_scenario.scenario_events.create!(
+      title: "別シナリオのイベント",
+      trigger_condition: "別の条件",
+      read_aloud_text: "別の読み上げ文",
+      gm_actions: "別のGM向け対応",
+      post_event_changes: "別の変化",
+      position: 1
+    )
+
+    get scenes_scenario_url(scenario)
+
+    assert_response :success
+    assert_select ".scene-events", count: 0
+    assert_select "h4",
+                  text: "別シナリオのイベント",
+                  count: 0
+  end
+
   test "ログイン中のユーザーは真相とエンディングを表示できる" do
     scenario = create_scenario
 
