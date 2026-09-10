@@ -19,8 +19,11 @@ class ScenarioGenerationSchema < OpenAI::BaseModel
   end
 
   class Event < OpenAI::BaseModel
-    required :content, String
+    required :title, String
     required :trigger_condition, String
+    required :read_aloud_text, String
+    required :gm_actions, String
+    required :post_event_changes, String
     required :position, Integer
   end
 

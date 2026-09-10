@@ -143,33 +143,112 @@
                           <%= event.position %>
                         </span>
 
-                        <div class="flex-grow-1">
-                          <h3 class="h5 fw-bold mb-3">
-                            イベント <%= event.position %>
-                          </h3>
+                          <div class="flex-grow-1">
+                            <h3 class="h5 fw-bold mb-3">
+                              <%= event.title.presence ||
+                                  "イベント #{event.position}" %>
+                            </h3>
 
-                          <div class="lh-lg text-break">
-                            <%= simple_format(
-                                  event.content,
-                                  class: "mb-0"
-                                ) %>
-                          </div>
+                            <% if event.trigger_condition.present? %>
+                              <div class="alert alert-warning mb-4">
+                                <h4 class="h6 fw-bold mb-2">
+                                  発生条件・タイミング
+                                </h4>
 
-                          <% if event.trigger_condition.present? %>
-                            <div class="alert alert-warning mt-4 mb-0">
-                              <h4 class="h6 fw-bold mb-2">
-                                発生条件
-                              </h4>
-
-                              <div class="lh-lg text-break">
-                                <%= simple_format(
-                                      event.trigger_condition,
-                                      class: "mb-0"
-                                    ) %>
+                                <div class="lh-lg text-break">
+                                  <%= simple_format(
+                                        event.trigger_condition,
+                                        class: "mb-0"
+                                      ) %>
+                                </div>
                               </div>
-                            </div>
-                          <% end %>
-                        </div>
+                            <% end %>
+
+                            <% if event.read_aloud_text.present? %>
+                              <section class="mb-4">
+                                <div
+                                  class="
+                                    d-flex
+                                    flex-wrap
+                                    align-items-center
+                                    gap-2
+                                    mb-2
+                                  "
+                                >
+                                  <h4 class="h6 fw-bold mb-0">
+                                    PL向けの読み上げ文
+                                  </h4>
+
+                                  <span class="badge text-bg-primary">
+                                    そのまま読み上げ可能
+                                  </span>
+                                </div>
+
+                                <div class="bg-body-tertiary rounded-3 p-3">
+                                  <div
+                                    class="
+                                      border-start
+                                      border-4
+                                      border-primary
+                                      ps-3
+                                      lh-lg
+                                      text-break
+                                    "
+                                  >
+                                    <%= simple_format(
+                                          event.read_aloud_text,
+                                          class: "mb-0"
+                                        ) %>
+                                  </div>
+                                </div>
+                              </section>
+                            <% end %>
+
+                            <% if event.gm_actions.present? %>
+                              <section class="mb-4">
+                                <h4 class="h6 fw-bold mb-2">
+                                  GM向けの対応
+                                </h4>
+
+                                <div class="border rounded-3 p-3 lh-lg text-break">
+                                  <%= simple_format(
+                                        event.gm_actions,
+                                        class: "mb-0"
+                                      ) %>
+                                </div>
+                              </section>
+                            <% end %>
+
+                            <% if event.post_event_changes.present? %>
+                              <section class="mb-4">
+                                <h4 class="h6 fw-bold mb-2">
+                                  発生後の変化
+                                </h4>
+
+                                <div class="alert alert-secondary mb-0">
+                                  <%= simple_format(
+                                        event.post_event_changes,
+                                        class: "mb-0"
+                                      ) %>
+                                </div>
+                              </section>
+                            <% end %>
+
+                            <% if event.content.present? %>
+                              <section>
+                                <h4 class="h6 fw-bold mb-2">
+                                  イベント内容
+                                </h4>
+
+                                <div class="lh-lg text-break">
+                                  <%= simple_format(
+                                        event.content,
+                                        class: "mb-0"
+                                      ) %>
+                                </div>
+                              </section>
+                            <% end %>
+                          </div>
                       </div>
                     </div>
                   </article>

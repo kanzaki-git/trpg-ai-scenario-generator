@@ -86,8 +86,11 @@ class ScenarioGenerationSaver
   def save_events
     generation_result.events.each_with_object({}) do |event_data, records|
       event = scenario.scenario_events.create!(
-        content: event_data.content,
+        title: event_data.title,
         trigger_condition: event_data.trigger_condition,
+        read_aloud_text: event_data.read_aloud_text,
+        gm_actions: event_data.gm_actions,
+        post_event_changes: event_data.post_event_changes,
         position: event_data.position
       )
 

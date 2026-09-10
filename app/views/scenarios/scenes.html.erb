@@ -134,6 +134,8 @@
                   </section>
                 <% end %>
 
+                <%= render "scene_events", scene: scene %>
+
                <% if scene.read_aloud_text.present? ||
                      scene.visible_exploration_target_items.any? %>
                   <section class="mb-5 scene-location-description">

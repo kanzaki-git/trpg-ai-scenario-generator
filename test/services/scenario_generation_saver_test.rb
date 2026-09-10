@@ -55,8 +55,21 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
     assert_equal 1, clue.position
 
     event = @scenario.scenario_events.first
-    assert_equal "停電が発生する", event.content
-    assert_equal "机を調べた後", event.trigger_condition
+    assert_equal "非常電源の停止", event.title
+    assert_equal "机の下の鍵を確認した後", event.trigger_condition
+    assert_equal(
+      "突然、頭上の照明が消え、警告音が響き始めます。",
+      event.read_aloud_text
+    )
+    assert_equal(
+      "非常電源を復旧できることをプレイヤーへ伝える。",
+      event.gm_actions
+    )
+    assert_equal(
+      "電源を復旧するまで書斎の端末を使用できなくなる。",
+      event.post_event_changes
+    )
+    assert_nil event.content
     assert_equal 1, event.position
 
     scene = @scenario.scenario_scenes.first
@@ -470,8 +483,11 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
       ],
       events: [
         ScenarioGenerationSchema::Event.new(
-          content: "停電が発生する",
-          trigger_condition: "机を調べた後",
+          title: "非常電源の停止",
+          trigger_condition: "机の下の鍵を確認した後",
+          read_aloud_text: "突然、頭上の照明が消え、警告音が響き始めます。",
+          gm_actions: "非常電源を復旧できることをプレイヤーへ伝える。",
+          post_event_changes: "電源を復旧するまで書斎の端末を使用できなくなる。",
           position: 1
         )
       ],
