@@ -4,8 +4,9 @@
       <header class="mb-4">
         <%= render "page_header",
                   eyebrow: @scenario.title,
-                  title: "真相・エンディング",
-                  description: "シナリオの真相と、プレイヤーの行動に応じた結末を確認できます。" %>
+                  title: "真相・シナリオ解説",
+                  description: "事件の真相と、ゲームマスター向けの解説を確認できます。"
+                  %>
       </header>
 
       <%= render "navigation" %>
@@ -52,50 +53,37 @@
           <% end %>
         </section>
 
-        <section class="mb-5">
-          <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-            <h2 class="h3 fw-bold mb-0">
-              エンディング候補
-            </h2>
+        <section class="mb-5 scenario-explanation">
+          <h2 class="h3 fw-bold mb-3">
+            シナリオ解説
+          </h2>
 
-            <span class="badge text-bg-secondary">
-              <%= @scenario.scenario_endings.count %>件
-            </span>
-          </div>
-
-          <p class="text-secondary mb-4">
-            プレイヤーの行動や推理結果に最も近いエンディングを選んでください。
+          <p class="text-danger fw-bold mb-3">
+            この解説には、事件の真相やエンディングに関する
+            ネタバレが含まれています。
           </p>
 
-          <% if @scenario.scenario_endings.any? %>
-            <div class="row g-4">
-              <% @scenario.scenario_endings
-                          .order(:position)
-                          .each do |ending| %>
-                <div class="col-12">
-                  <article class="card shadow-sm">
-                    <div class="card-header bg-dark text-white px-4 py-3">
-                      <h3 class="h5 fw-bold mb-0">
-                        エンディング
-                        <%= ending.position %>
-                      </h3>
-                    </div>
+          <% if @scenario.story_outline.present? %>
+            <details class="card border-danger shadow-sm">
+              <summary
+                class="card-header bg-danger text-white px-4 py-3 fw-bold"
+                style="cursor: pointer;"
+              >
+                シナリオ解説を表示する
+              </summary>
 
-                    <div class="card-body p-4">
-                      <div class="lh-lg text-break">
-                        <%= simple_format(
-                              ending.content,
-                              class: "mb-0"
-                            ) %>
-                      </div>
-                    </div>
-                  </article>
+              <div class="card-body p-4 p-md-5">
+                <div class="lh-lg text-break">
+                  <%= simple_format(
+                        @scenario.story_outline,
+                        class: "mb-0"
+                      ) %>
                 </div>
-              <% end %>
-            </div>
+              </div>
+            </details>
           <% else %>
             <div class="alert alert-secondary">
-              エンディング候補は登録されていません。
+              シナリオ解説は登録されていません。
             </div>
           <% end %>
         </section>

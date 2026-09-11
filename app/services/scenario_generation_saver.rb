@@ -177,6 +177,7 @@ class ScenarioGenerationSaver
   def save_endings
     generation_result.endings.each do |ending_data|
       scenario.scenario_endings.create!(
+        condition: ending_data.condition,
         content: ending_data.content,
         position: ending_data.position
       )

@@ -87,6 +87,7 @@ class ScenarioGenerationSchema < OpenAI::BaseModel
   end
 
   class Ending < OpenAI::BaseModel
+    required :condition, String
     required :content, String
     required :position, Integer
   end

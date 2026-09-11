@@ -125,6 +125,57 @@ class ScenarioGeneratorTest < ActiveSupport::TestCase
       prompt,
       "transitionsを空の配列にしてください"
     )
+
+    assert_includes prompt, "【シナリオ解説】"
+    assert_includes(
+      prompt,
+      "解説だけに登場する新しい真相、設定、NPC、"
+    )
+
+    assert_includes(
+      prompt,
+      "プレイヤーへ新たな行動を求める文章で"
+    )
+    assert_includes(
+      prompt,
+      "scenesの中に、事件の決着や"
+    )
+    assert_includes(
+      prompt,
+      "最後のシーンはクライマックスとし、"
+    )
+    assert_includes(
+      prompt,
+      "最後のクライマックスシーンには、"
+    )
+    assert_includes(
+      prompt,
+      "周囲の光景、音、空気の変化、"
+    )
+    assert_includes(
+      prompt,
+      "最後の1〜2文では、舞台に残る光景や音、"
+    )
+    assert_includes(
+      prompt,
+      "一続きの物語として記載してください"
+    )
+    assert_includes(
+      prompt,
+      "行動、判断、成否と完全に一致させてください"
+    )
+    assert_includes(
+      prompt,
+      "実行していない対処法の結果を混ぜないでください"
+    )
+    assert_includes(
+      prompt,
+      "今回のセッションにおける結果を確定させてください"
+    )
+    assert_includes(
+      prompt,
+      "物語に区切りを付けてください"
+    )
   end
 
   test "生成受付番号がなければエラーになる" do
@@ -233,6 +284,10 @@ class ScenarioGeneratorTest < ActiveSupport::TestCase
     assert_instance_of(
       ScenarioGenerationSchema::Ending,
       result.endings.first
+    )
+    assert_equal(
+      "宝石を取り戻し、犯人を特定できた場合",
+      result.endings.first.condition
     )
   end
 
@@ -536,6 +591,7 @@ end
       ],
       endings: [
         {
+          condition: "宝石を取り戻し、犯人を特定できた場合",
           content: "宝石を取り戻し事件は解決した。",
           position: 1
         }

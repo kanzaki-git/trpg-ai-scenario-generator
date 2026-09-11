@@ -150,6 +150,10 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
     assert_equal 2, sound.position
 
     ending = @scenario.scenario_endings.first
+    assert_equal(
+      "宝石を取り戻し、犯人を特定できた場合",
+      ending.condition
+    )
     assert_equal "宝石を取り戻し事件は解決した。", ending.content
     assert_equal 1, ending.position
   end
@@ -496,6 +500,7 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
       ],
       endings: [
         ScenarioGenerationSchema::Ending.new(
+          condition: "宝石を取り戻し、犯人を特定できた場合",
           content: "宝石を取り戻し事件は解決した。",
           position: 1
         )
