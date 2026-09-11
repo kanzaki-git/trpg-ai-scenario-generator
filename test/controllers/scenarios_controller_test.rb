@@ -662,13 +662,121 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
                   count: 0
   end
 
-  test "ログイン中のユーザーは真相とエンディングを表示できる" do
+  test "ログイン中のユーザーは真相とシナリオ解説を表示できる" do
     scenario = create_scenario
 
     get conclusion_scenario_url(scenario)
 
     assert_response :success
-    assert_select "h1", text: "真相・エンディング"
+    assert_select "h1", text: "真相・シナリオ解説"
+    assert_select ".scenario-endings", count: 0
+  end
+
+  test "エンディングの条件と読み上げ文と終了案内を表示できる" do
+    scenario = create_scenario
+    scenario.scenario_endings.create!(
+      condition: "犯人を特定し、盗まれた宝石を取り戻した場合",
+      content: "事件は解決し、屋敷には穏やかな日常が戻りました。",
+      position: 1
+    )
+
+    get scenes_scenario_url(scenario)
+
+    assert_response :success
+
+    assert_select ".scenario-endings", count: 1 do
+      assert_select "h2", text: "エンディング候補"
+    end
+
+    assert_select ".ending-condition", count: 1 do
+      assert_select(
+        "h4",
+        text: "このエンディングになる条件（GM向け）"
+      )
+      assert_select(
+        "p",
+        text: "犯人を特定し、盗まれた宝石を取り戻した場合"
+      )
+    end
+
+    assert_select ".ending-read-aloud", count: 1 do
+      assert_select "h4", text: "結末の読み上げ文"
+      assert_select(
+        "p",
+        text: "事件は解決し、屋敷には穏やかな日常が戻りました。"
+      )
+    end
+
+    assert_select ".ending-session-close", count: 1 do
+      assert_select "h4", text: "セッション終了の案内"
+      assert_select(
+        "p",
+        text: "以上で、このシナリオは終了です。お疲れさまでした。"
+      )
+    end
+  end
+
+  test "シナリオ解説をネタバレ注意付きの折りたたみで表示できる" do
+    scenario = create_scenario
+    scenario.update!(
+      story_outline: <<~TEXT
+        【事件の真相】
+        執事が宝石を持ち出していた。
+
+        【出来事の順序】
+        執事が宝石を隠し、プレイヤーが調査を始めた。
+      TEXT
+    )
+
+    get conclusion_scenario_url(scenario)
+
+    assert_response :success
+
+    assert_select ".scenario-explanation", count: 1 do
+      assert_select "h2", text: "シナリオ解説"
+      assert_select(
+        "p.text-danger",
+        text: /ネタバレが含まれています/
+      )
+      assert_select "details", count: 1
+      assert_select "details[open]", count: 0
+      assert_select "summary", text: "シナリオ解説を表示する"
+      assert_select "p", text: /執事が宝石を持ち出していた/
+    end
+  end
+
+  test "条件とシナリオ解説がない既存シナリオも表示できる" do
+    scenario = create_scenario
+    scenario.scenario_endings.create!(
+      content: "事件は解決し、屋敷には日常が戻りました。",
+      position: 1
+    )
+
+    get scenes_scenario_url(scenario)
+
+    assert_response :success
+
+    assert_select ".ending-condition", count: 0
+
+    assert_select ".ending-read-aloud", count: 1 do
+      assert_select(
+        "p",
+        text: "事件は解決し、屋敷には日常が戻りました。"
+      )
+    end
+
+    assert_select ".ending-session-close", count: 1
+
+    get conclusion_scenario_url(scenario)
+
+    assert_response :success
+
+    assert_select ".scenario-explanation", count: 1 do
+      assert_select(
+        ".alert-secondary",
+        text: "シナリオ解説は登録されていません。"
+      )
+    end
   end
 
   test "ログイン中のユーザーは自分のシナリオを削除できる" do
