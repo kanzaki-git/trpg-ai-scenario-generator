@@ -164,7 +164,7 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
     generation_result.scenes.first
       .investigation_options.first.target_keys = [ "missing_target" ]
 
-    assert_raises(KeyError) do
+    assert_raises(ScenarioGenerationSaver::AssociationError) do
       ScenarioGenerationSaver.new(
         scenario: @scenario,
         generation_result: generation_result
@@ -189,7 +189,7 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
         reveal_condition: ""
       )
 
-    assert_raises(ArgumentError) do
+    assert_raises(ScenarioGenerationSaver::AssociationError) do
       ScenarioGenerationSaver.new(
         scenario: @scenario,
         generation_result: generation_result
@@ -208,7 +208,7 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
     generation_result.scenes.first
       .investigation_options.first.target_keys = []
 
-    assert_raises(ArgumentError) do
+    assert_raises(ScenarioGenerationSaver::AssociationError) do
       ScenarioGenerationSaver.new(
         scenario: @scenario,
         generation_result: generation_result

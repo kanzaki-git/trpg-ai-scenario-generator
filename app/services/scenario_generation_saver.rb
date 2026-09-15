@@ -1,4 +1,6 @@
 class ScenarioGenerationSaver
+  class AssociationError < StandardError; end
+
   def initialize(scenario:, generation_result:)
     @scenario = scenario
     @generation_result = generation_result
@@ -144,7 +146,7 @@ class ScenarioGenerationSaver
     target_keys = scene_data.exploration_targets.map(&:key)
 
     if target_keys.uniq.size != target_keys.size
-      raise ArgumentError, "探索対象のキーが重複しています"
+      raise AssociationError, "探索対象のキーが重複しています"
     end
 
     exploration_targets_by_key =
@@ -152,11 +154,15 @@ class ScenarioGenerationSaver
 
     scene_data.investigation_options.each do |investigation_option|
       if investigation_option.target_keys.blank?
-        raise ArgumentError, "行動選択肢の探索対象が設定されていません"
+        raise AssociationError, "行動選択肢の探索対象が設定されていません"
       end
 
       investigation_option.target_keys.each do |target_key|
-        exploration_targets_by_key.fetch(target_key)
+        next if exploration_targets_by_key.key?(target_key)
+
+        raise AssociationError,
+              "シーン#{scene_data.position}に存在しない探索対象です: " \
+              "#{target_key}"
       end
     end
   end
