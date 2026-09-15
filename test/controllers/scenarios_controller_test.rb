@@ -267,7 +267,7 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_entity
   end
 
-    test "バックグラウンド生成に失敗した場合は失敗状態を返す" do
+  test "バックグラウンド生成に失敗した場合は失敗状態を返す" do
     scenario = create_scenario
     scenario.update!(
       generation_status: :generating,
@@ -312,6 +312,77 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_equal "failed", response.parsed_body["status"]
+  end
+
+  test "関連付け不整合の場合は500エラーにせず失敗状態を返す" do
+    scenario = create_scenario
+    scenario.update!(
+      generation_status: :generating,
+      openai_response_id: "resp_association_error"
+    )
+    @user.update!(scenario_generation_count: 1)
+
+    generation_log = @user.scenario_generation_logs.create!(
+      scenario: scenario,
+      status: :processing,
+      openai_response_id: "resp_association_error",
+      openai_model: "gpt-5.2",
+      started_at: Time.current
+    )
+
+    openai_response = OpenStruct.new(
+      id: "resp_association_error",
+      model: "gpt-5.2",
+      status: :completed,
+      usage: nil
+    )
+
+    expected_generation_result = Object.new
+
+    fake_generator = Minitest::Mock.new
+    fake_generator.expect(
+      :retrieve_background,
+      openai_response,
+      [ "resp_association_error" ]
+    )
+    fake_generator.expect(
+      :extract_background_result,
+      expected_generation_result,
+      [ openai_response ]
+    )
+
+    association_error =
+      ScenarioGenerationSaver::AssociationError.new(
+        "シーン1に存在しない探索対象です: missing_target"
+      )
+
+    failing_saver = Object.new
+    failing_saver.define_singleton_method(:call) do
+      raise association_error
+    end
+
+    ScenarioGenerator.stub(
+      :new,
+      ->(scenario:) { fake_generator }
+    ) do
+      ScenarioGenerationSaver.stub(
+        :new,
+        lambda do |scenario:, generation_result:|
+          assert_same expected_generation_result, generation_result
+          failing_saver
+        end
+      ) do
+        get generation_status_scenario_url(scenario)
+      end
+    end
+
+    fake_generator.verify
+
+    assert_response :success
+    assert_equal "failed", response.parsed_body["status"]
+    assert scenario.reload.failed?
+    assert generation_log.reload.failed?
+    assert_equal 0, @user.reload.scenario_generation_count
   end
 
   test "バックグラウンド生成完了時に詳細画面のURLを返す" do
