@@ -273,6 +273,10 @@ class ScenarioGenerator
       ・探索のきっかけのpositionは、シーンごとに1から始め、
         同じシーン内で重複させないでください
 
+      ・場所の接続のpositionは1から始め、
+        同じシナリオ内で重複させず、
+        途中の番号を飛ばさないでください
+
       ・関連付けには、実際に生成した対象のpositionを使用してください
         データベースのIDを作成する必要はありません
 
@@ -808,10 +812,12 @@ class ScenarioGenerator
 
       ・該当する要素がない場合は、空の配列にしてください
 
-      【共通の場所データ】
+      【共通の場所データとマップ】
 
-      ・locationsには、シナリオで使用する場所をまとめてください
-        部屋、村、森、遺跡など、ジャンルに合う場所を設定してください
+      ・locationsには、シナリオで使用する主要な場所を
+        2か所以上、最大8か所まで設定してください
+        部屋、村、森、遺跡、宇宙船など、
+        シナリオの舞台に合う場所を設定してください
 
       ・同じ場所を別々のデータとして重複して作成しないでください
         NPCの配置、探索先、シーン内の文章では同じ場所名を使ってください
@@ -820,11 +826,93 @@ class ScenarioGenerator
         簡潔に記載してください
         descriptionには、未発見の手がかりや真相を含めないでください
 
+      ・map_typeには、場所の構造に応じて
+        floor_plan、area_map、networkのいずれかを設定してください
+
+      ・建物、屋敷、洞窟、宇宙船、飛行船など、
+        内部の部屋や区画を表す場合はfloor_planにしてください
+
+      ・村、町、島、森など、
+        屋外の地域や広い範囲を表す場合はarea_mapにしてください
+
+      ・通信網、仮想空間、転送装置など、
+        抽象的な接続関係を表す場合はnetworkにしてください
+
+      ・ジャンルだけでmap_typeを決めないでください
+        SFの宇宙船内はfloor_plan、
+        ホラーの村全体はarea_mapのように、
+        実際の場所の構造を基準に選んでください
+
+      ・各場所のmap_rowとmap_columnには、
+        1から3までの整数を設定してください
+
+      ・同じmap_rowとmap_columnの組み合わせを
+        複数の場所へ設定しないでください
+
+      ・場所同士の位置関係が分かりやすくなり、
+        接続線が必要以上に交差しないように配置してください
+
+      ・各場所のvisibilityには、
+        publicまたはsecretを設定してください
+
+      ・visibilityは、その場所へ自由に入れるかではなく、
+        プレイヤー向けマップへ開始時から表示してよいかで判断してください
+
+      ・導入や最初のシーンで存在が明らかになっており、
+        名前を見ても物語の展開を損なわない場所はpublicにしてください
+
+      ・調査によって初めて行き先として判明する場所や、
+        名前や存在を開始時に表示すると真相や展開を推測できる場所は
+        secretにしてください
+
+      ・一般に公開されている施設であっても、
+        シナリオ内で行き先として判明するまで伏せる必要がある場合は
+        secretにしてください
+
+      ・後のシーンに登場するという理由だけで、
+        すべての場所をsecretにしないでください
+        会場案内などで開始時から知っていて自然な場所はpublicにしてください
+
+      ・開始場所と、進行に必須となる通常の探索場所を
+        必要以上にsecretにしないでください
+
+      ・開始時に存在を伏せる必要のある場所がない場合は、
+        すべての場所のvisibilityをpublicにしてください
+
+      ・各シナリオにsecretの場所や経路を
+        必ず作成する必要はありません
+
+      ・location_connectionsには、
+        場所同士を直接移動できる接続関係を設定してください
+
+      ・source_location_positionとdestination_location_positionには、
+        locationsに実際に存在するpositionだけを使用してください
+
+      ・同じ場所同士を接続しないでください
+
+      ・AからBとBからAは同じ接続として扱います
+        同じ組み合わせを逆向きに重複して生成しないでください
+
+      ・すべての場所へ、いずれかの接続をたどって
+        到達できる構成にしてください
+
+      ・通常の通路や公開された移動経路のvisibilityは
+        publicにしてください
+
+      ・隠し通路や秘密の移動経路のvisibilityは
+        secretにしてください
+
+      ・secretの場所につながる接続は、
+        プレイヤー向けマップへ場所の存在が漏れないよう
+        secretにしてください
+
+      ・場所同士の位置関係や移動経路が、
+        シーンの文章、NPCの配置、探索のきっかけと
+        矛盾しないようにしてください
+
       ・各シーンのlocation_positionsには、
         その場面でプレイヤーが活動する場所のpositionを設定してください
         一つのシーンで複数の場所を扱っても構いません
-
-      ・場所同士の位置関係や移動経路が、会話や描写と矛盾しないようにしてください
 
       【NPCの初期配置】
 
@@ -971,6 +1059,10 @@ class ScenarioGenerator
         locations: build_collection(
           generation_data.fetch(:locations),
           ScenarioGenerationSchema::Location
+        ),
+        location_connections: build_collection(
+          generation_data.fetch(:location_connections),
+          ScenarioGenerationSchema::LocationConnection
         ),
         npcs: build_collection(
           generation_data.fetch(:npcs),

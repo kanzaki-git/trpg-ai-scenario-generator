@@ -1,0 +1,202 @@
+<section
+  class="scenario-map-section mb-5"
+  aria-labelledby="scenario-map-title"
+>
+  <div
+    class="
+      d-flex
+      flex-column
+      flex-md-row
+      justify-content-between
+      align-items-md-center
+      gap-3
+      mb-3
+    "
+  >
+    <div>
+      <div class="d-flex flex-wrap align-items-center gap-2">
+        <h2 id="scenario-map-title" class="h3 fw-bold mb-0">
+          共通マップ
+        </h2>
+
+        <% if @scenario.map_type.present? %>
+          <span class="badge text-bg-secondary">
+            <%= scenario_map_type_label(@scenario.map_type) %>
+          </span>
+        <% end %>
+      </div>
+
+      <p class="text-secondary mb-0 mt-2">
+        主要な場所と、場所同士の移動経路を確認できます。
+      </p>
+    </div>
+
+    <div
+      class="btn-group"
+      role="group"
+      aria-label="マップの表示対象"
+    >
+      <%= link_to(
+            "GM向け",
+            url_for(map_view: "gm"),
+            class: [
+              "btn",
+              @map_view == "gm" ?
+                "btn-primary" :
+                "btn-outline-primary"
+            ]
+          ) %>
+
+      <%= link_to(
+            "プレイヤー向け",
+            url_for(map_view: "player"),
+            class: [
+              "btn",
+              @map_view == "player" ?
+                "btn-primary" :
+                "btn-outline-primary"
+            ]
+          ) %>
+    </div>
+  </div>
+
+  <% if @map_locations.any? %>
+    <% highlighted_location_ids =
+         local_assigns.fetch(:highlighted_location_ids, []) %>
+
+    <% interactive =
+         local_assigns.fetch(:interactive, false) %>
+
+    <div class="scenario-map-scroll">
+      <div
+        class="
+          scenario-map-canvas
+          scenario-map--<%= @scenario.map_theme %>
+          scenario-map--<%= @scenario.map_type %>
+        "
+      >
+        <svg
+          class="scenario-map-lines"
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
+          <% @map_connections.each do |connection| %>
+            <% source = connection.source_location %>
+            <% destination = connection.destination_location %>
+
+            <line
+              class="
+                scenario-map-connection
+                <%= "is-secret" if connection.visibility_secret? %>
+              "
+              x1="<%= scenario_map_coordinate(source.map_column) %>"
+              y1="<%= scenario_map_coordinate(source.map_row) %>"
+              x2="<%= scenario_map_coordinate(destination.map_column) %>"
+              y2="<%= scenario_map_coordinate(destination.map_row) %>"
+              vector-effect="non-scaling-stroke"
+              <% if interactive %>
+                data-scenario-map-target="connection"
+                data-source-location-id="<%= source.id %>"
+                data-destination-location-id="<%= destination.id %>"
+              <% end %>
+            />
+          <% end %>
+        </svg>
+
+        <% @map_locations.each do |location| %>
+          <% active =
+               highlighted_location_ids.include?(location.id) %>
+
+          <article
+            class="
+              scenario-map-location
+              <%= "is-active" if active %>
+              <%= "is-secret" if location.visibility_secret? %>
+            "
+            style="
+              --map-x:
+                <%= scenario_map_coordinate(location.map_column) %>%;
+              --map-y:
+                <%= scenario_map_coordinate(location.map_row) %>%;
+            "
+            <% if interactive %>
+              data-scenario-map-target="node"
+              data-location-id="<%= location.id %>"
+            <% end %>
+          >
+            <div
+              class="
+                d-flex
+                justify-content-between
+                align-items-start
+                gap-2
+                mb-2
+              "
+            >
+              <span class="scenario-map-location-number">
+                <%= location.position %>
+              </span>
+
+              <% if location.visibility_secret? %>
+                <span class="scenario-map-secret-label">
+                  秘密
+                </span>
+              <% end %>
+            </div>
+
+            <h3 class="scenario-map-location-name">
+              <%= location.name %>
+            </h3>
+
+            <p class="scenario-map-location-description">
+              <%= location.description %>
+            </p>
+          </article>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="d-flex flex-wrap gap-3 mt-3 small">
+      <span class="d-inline-flex align-items-center gap-2">
+        <span class="scenario-map-legend-line"></span>
+        移動できる経路
+      </span>
+
+      <% if @map_view == "gm" &&
+            @map_has_secret_connections %>
+        <span class="d-inline-flex align-items-center gap-2">
+          <span class="scenario-map-legend-line is-secret"></span>
+          秘密の経路
+        </span>
+      <% end %>
+
+      <% if highlighted_location_ids.any? %>
+        <span class="d-inline-flex align-items-center gap-2">
+          <span class="scenario-map-legend-current"></span>
+          このシーンの場所
+        </span>
+      <% end %>
+    </div>
+
+    <% if @map_has_secret_content %>
+      <% if @map_view == "gm" %>
+        <div class="alert alert-warning mt-3 mb-0">
+          GM向け表示には、秘密の場所や秘密の経路も含まれます。
+          プレイヤーへ画面を見せる場合は、
+          「プレイヤー向け」へ切り替えてください。
+        </div>
+      <% else %>
+        <div class="alert alert-info mt-3 mb-0">
+          プレイヤー向け表示では、秘密の場所と経路を除外しています。
+        </div>
+      <% end %>
+    <% end %>
+  <% else %>
+    <div class="alert alert-secondary mb-0">
+      このシナリオにはマップデータがありません。
+      マップ機能追加前に作成されたシナリオも、
+      引き続き本文から進行できます。
+    </div>
+  <% end %>
+</section>

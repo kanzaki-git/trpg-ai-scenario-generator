@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_11_170402) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_15_210810) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -92,13 +92,33 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_11_170402) do
     t.index ["user_id"], name: "index_scenario_generation_logs_on_user_id"
   end
 
+  create_table "scenario_location_connections", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "destination_location_id", null: false
+    t.integer "position", null: false
+    t.bigint "scenario_id", null: false
+    t.bigint "source_location_id", null: false
+    t.datetime "updated_at", null: false
+    t.string "visibility", default: "public", null: false
+    t.index ["destination_location_id"], name: "index_scenario_location_connections_on_destination_location_id"
+    t.index ["scenario_id", "position"], name: "idx_location_connections_scenario_position", unique: true
+    t.index ["scenario_id", "source_location_id", "destination_location_id"], name: "idx_location_connections_unique_pair", unique: true
+    t.index ["scenario_id"], name: "index_scenario_location_connections_on_scenario_id"
+    t.index ["source_location_id"], name: "index_scenario_location_connections_on_source_location_id"
+    t.check_constraint "source_location_id < destination_location_id", name: "chk_location_connections_order"
+  end
+
   create_table "scenario_locations", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "description", null: false
+    t.integer "map_column"
+    t.integer "map_row"
     t.string "name", null: false
     t.integer "position", null: false
     t.bigint "scenario_id", null: false
     t.datetime "updated_at", null: false
+    t.string "visibility", default: "public", null: false
+    t.index ["scenario_id", "map_row", "map_column"], name: "idx_scenario_locations_unique_map_coordinates", unique: true, where: "((map_row IS NOT NULL) AND (map_column IS NOT NULL))"
     t.index ["scenario_id", "position"], name: "index_scenario_locations_on_scenario_id_and_position", unique: true
     t.index ["scenario_id"], name: "index_scenario_locations_on_scenario_id"
   end
@@ -198,6 +218,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_11_170402) do
     t.string "generation_status", default: "completed", null: false
     t.string "genre"
     t.text "introduction"
+    t.string "map_type"
     t.string "openai_response_id"
     t.integer "play_time"
     t.integer "player_count"
@@ -237,6 +258,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_11_170402) do
   add_foreign_key "scenario_exploration_cues", "scenario_scenes"
   add_foreign_key "scenario_generation_logs", "scenarios", on_delete: :nullify
   add_foreign_key "scenario_generation_logs", "users"
+  add_foreign_key "scenario_location_connections", "scenario_locations", column: "destination_location_id"
+  add_foreign_key "scenario_location_connections", "scenario_locations", column: "source_location_id"
+  add_foreign_key "scenario_location_connections", "scenarios"
   add_foreign_key "scenario_locations", "scenarios"
   add_foreign_key "scenario_npcs", "scenario_locations", column: "initial_location_id"
   add_foreign_key "scenario_npcs", "scenarios"

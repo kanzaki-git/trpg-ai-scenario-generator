@@ -2,6 +2,16 @@ class ScenarioGenerationSchema < OpenAI::BaseModel
   class Location < OpenAI::BaseModel
     required :name, String
     required :description, String
+    required :map_row, Integer
+    required :map_column, Integer
+    required :visibility, String
+    required :position, Integer
+  end
+
+  class LocationConnection < OpenAI::BaseModel
+    required :source_location_position, Integer
+    required :destination_location_position, Integer
+    required :visibility, String
     required :position, Integer
   end
 
@@ -97,7 +107,10 @@ class ScenarioGenerationSchema < OpenAI::BaseModel
   required :story_outline, String
   required :introduction, String
   required :truth, String
+  required :map_type, String
   required :locations, OpenAI::ArrayOf[Location]
+  required :location_connections,
+           OpenAI::ArrayOf[LocationConnection]
   required :npcs, OpenAI::ArrayOf[Npc]
   required :clues, OpenAI::ArrayOf[Clue]
   required :events, OpenAI::ArrayOf[Event]

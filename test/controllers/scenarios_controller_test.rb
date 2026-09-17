@@ -523,7 +523,8 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
 
-    assert_select "main[data-controller='scene-jump']"
+    assert_select "main[data-controller~='scene-jump']"
+    assert_select "main[data-controller~='scenario-map']"
     assert_select "details#scene-1"
     assert_select "details#scene-2"
     assert_select "details#scene-3"
@@ -1351,6 +1352,184 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "GM向けマップには公開場所と秘密の場所を表示する" do
+    map_data = create_map_scenario
+    scenario = map_data.fetch(:scenario)
+
+    get materials_scenario_url(scenario)
+
+    assert_response :success
+
+    assert_select ".scenario-map-section", count: 1
+    assert_select ".scenario-map-location", count: 3
+    assert_select ".scenario-map-location.is-secret", count: 1
+    assert_select "h3", text: "玄関ホール"
+    assert_select "h3", text: "書斎"
+    assert_select "h3", text: "秘密の地下室"
+
+    assert_select "line.scenario-map-connection", count: 2
+    assert_select(
+      "line.scenario-map-connection.is-secret",
+      count: 1
+    )
+
+    assert_select(
+      ".scenario-map-legend-line.is-secret",
+      count: 1
+    )
+    assert_select(
+      ".scenario-map-section .alert-warning",
+      text: /秘密の場所や秘密の経路も含まれます/
+    )
+  end
+
+  test "プレイヤー向けマップから秘密の場所と経路を除外する" do
+    map_data = create_map_scenario
+    scenario = map_data.fetch(:scenario)
+    secret_location = map_data.fetch(:secret_location)
+
+    get materials_scenario_url(
+      scenario,
+      map_view: "player"
+    )
+
+    assert_response :success
+
+    assert_select ".scenario-map-location", count: 2
+    assert_select ".scenario-map-location.is-secret", count: 0
+    assert_select "line.scenario-map-connection", count: 1
+    assert_select(
+      "line.scenario-map-connection.is-secret",
+      count: 0
+    )
+
+    assert_not_includes response.body, secret_location.name
+    assert_not_includes response.body,
+                        secret_location.description
+
+    assert_select(
+      ".alert-info",
+      text: /秘密の場所と経路を除外しています/
+    )
+  end
+
+  test "秘密の場所や経路がない場合は秘密用の凡例と案内を表示しない" do
+    map_data = create_map_scenario
+    scenario = map_data.fetch(:scenario)
+
+    map_data.fetch(:secret_location).update!(
+      name: "休憩所",
+      description: "誰でも利用できる休憩所。",
+      visibility: :public
+    )
+
+    scenario.scenario_location_connections
+      .visibility_secret
+      .find_each do |connection|
+        connection.update!(visibility: :public)
+      end
+
+    get materials_scenario_url(scenario)
+
+    assert_response :success
+    assert_select(
+      ".scenario-map-legend-line.is-secret",
+      count: 0
+    )
+    assert_select(
+      ".scenario-map-section .alert-warning",
+      count: 0
+    )
+
+    get materials_scenario_url(
+      scenario,
+      map_view: "player"
+    )
+
+    assert_response :success
+    assert_select(
+      ".scenario-map-section .alert-info",
+      count: 0
+    )
+  end
+
+  test "マップデータがない既存シナリオも表示できる" do
+    scenario = create_scenario
+
+    scenario.scenario_locations.create!(
+      name: "座標のない既存場所",
+      description: "マップ機能追加前に保存された場所。",
+      position: 1
+    )
+
+    get materials_scenario_url(scenario)
+
+    assert_response :success
+    assert_select ".scenario-map-canvas", count: 0
+    assert_select(
+      ".alert-secondary",
+      text: /このシナリオにはマップデータがありません/
+    )
+  end
+
+  test "シーンと場所の関連をマップ操作用の属性へ設定する" do
+    map_data = create_map_scenario
+    scenario = map_data.fetch(:scenario)
+    public_location = map_data.fetch(:public_location)
+
+    scene = scenario.scenario_scenes.create!(
+      title: "玄関ホールの調査",
+      position: 1
+    )
+
+    scene.scenario_scene_locations.create!(
+      scenario_location: public_location
+    )
+
+    get scenes_scenario_url(scenario)
+
+    assert_response :success
+
+    assert_select "main[data-controller~='scenario-map']"
+    assert_select(
+      "details[data-action='toggle->scenario-map#highlightScene']",
+      count: 1
+    )
+    assert_select(
+      "details[data-location-ids=?]",
+      [ public_location.id ].to_json,
+      count: 1
+    )
+    assert_select(
+      "[data-scenario-map-target='node']" \
+      "[data-location-id='#{public_location.id}']",
+      count: 1
+    )
+  end
+
+  test "マップの再表示ではシナリオ生成処理を呼び出さない" do
+    map_data = create_map_scenario
+    scenario = map_data.fetch(:scenario)
+
+    unexpected_generation = lambda do |*|
+      flunk "マップ表示時にシナリオ生成処理が呼ばれました"
+    end
+
+    ScenarioGenerator.stub(:new, unexpected_generation) do
+      get materials_scenario_url(scenario)
+      assert_response :success
+
+      get scenes_scenario_url(scenario)
+      assert_response :success
+
+      get materials_scenario_url(
+        scenario,
+        map_view: "player"
+      )
+      assert_response :success
+    end
+  end
+
   private
 
   def create_scenario(user: @user, title: "テストシナリオ")
@@ -1365,5 +1544,59 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
       introduction: "テスト用の導入です。",
       truth: "テスト用の真相です。"
     )
+  end
+
+  def create_map_scenario
+    scenario = create_scenario
+    scenario.update!(map_type: :floor_plan)
+
+    public_location = scenario.scenario_locations.create!(
+      name: "玄関ホール",
+      description: "大きな窓のある玄関ホール。",
+      map_row: 1,
+      map_column: 1,
+      visibility: :public,
+      position: 1
+    )
+
+    second_public_location =
+      scenario.scenario_locations.create!(
+        name: "書斎",
+        description: "本棚と机が並ぶ書斎。",
+        map_row: 1,
+        map_column: 2,
+        visibility: :public,
+        position: 2
+      )
+
+    secret_location = scenario.scenario_locations.create!(
+      name: "秘密の地下室",
+      description: "隠し扉の先にある地下室。",
+      map_row: 2,
+      map_column: 2,
+      visibility: :secret,
+      position: 3
+    )
+
+    scenario.scenario_location_connections.create!(
+      source_location: public_location,
+      destination_location: second_public_location,
+      visibility: :public,
+      position: 1
+    )
+
+    scenario.scenario_location_connections.create!(
+      source_location: second_public_location,
+      destination_location: secret_location,
+      visibility: :secret,
+      position: 2
+    )
+
+    {
+      scenario: scenario,
+      public_location: public_location,
+      second_public_location: second_public_location,
+      secret_location: secret_location
+    }
   end
 end
