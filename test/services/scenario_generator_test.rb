@@ -70,6 +70,27 @@ class ScenarioGeneratorTest < ActiveSupport::TestCase
     assert_includes prompt, "visible_on_arrival"
     assert_includes prompt, "target_keys"
 
+    assert_includes(
+      prompt,
+      "すべての場所のvisibilityをpublicにしてください"
+    )
+    assert_includes(
+      prompt,
+      "プレイヤー向けマップへ開始時から表示してよいかで判断してください"
+    )
+    assert_includes(
+      prompt,
+      "名前や存在を開始時に表示すると真相や展開を推測できる場所は"
+    )
+    assert_includes(
+      prompt,
+      "一般に公開されている施設であっても、"
+    )
+    assert_includes(
+      prompt,
+      "必ず作成する必要はありません"
+    )
+
     assert_includes prompt, "【イベント】"
     assert_includes prompt, "titleには、何が起こるイベントか分かる"
     assert_includes(
@@ -418,12 +439,35 @@ class ScenarioGeneratorTest < ActiveSupport::TestCase
 
     result = @generator.extract_background_result(response)
 
+    assert_equal "floor_plan", result.map_type
+
     assert_instance_of(
       ScenarioGenerationSchema::Location,
       result.locations.first
     )
     assert_equal [ "玄関ホール", "書斎" ],
-                result.locations.map(&:name)
+                 result.locations.map(&:name)
+
+    hall = result.locations.first
+    assert_equal 1, hall.map_row
+    assert_equal 1, hall.map_column
+    assert_equal "public", hall.visibility
+
+    study = result.locations.second
+    assert_equal 1, study.map_row
+    assert_equal 2, study.map_column
+    assert_equal "secret", study.visibility
+
+    connection = result.location_connections.first
+
+    assert_instance_of(
+      ScenarioGenerationSchema::LocationConnection,
+      connection
+    )
+    assert_equal 1, connection.source_location_position
+    assert_equal 2, connection.destination_location_position
+    assert_equal "secret", connection.visibility
+    assert_equal 1, connection.position
 
     npc = result.npcs.first
     assert_equal 1, npc.initial_location_position
@@ -449,7 +493,7 @@ class ScenarioGeneratorTest < ActiveSupport::TestCase
     assert_equal 1, cues.first.npc_position
     assert_nil cues.last.npc_position
     assert_equal "書斎の方向から物音が聞こえます。",
-                cues.last.read_aloud_text
+                 cues.last.read_aloud_text
   end
 
   test "探索のきっかけのNPC項目が欠けている場合はエラーになる" do
@@ -490,16 +534,31 @@ end
       story_outline: "屋敷で事件が発生し調査が始まる",
       introduction: "あなたたちは屋敷へ招待された。",
       truth: "執事が宝石を隠していた。",
+      map_type: "floor_plan",
       locations: [
         {
           name: "玄関ホール",
           description: "大きな窓のある広いホール。",
+          map_row: 1,
+          map_column: 1,
+          visibility: "public",
           position: 1
         },
         {
           name: "書斎",
           description: "本棚と大きな机がある部屋。",
+          map_row: 1,
+          map_column: 2,
+          visibility: "secret",
           position: 2
+        }
+      ],
+      location_connections: [
+        {
+          source_location_position: 1,
+          destination_location_position: 2,
+          visibility: "secret",
+          position: 1
         }
       ],
       npcs: [

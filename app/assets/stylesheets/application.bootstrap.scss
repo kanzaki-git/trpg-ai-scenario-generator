@@ -27,3 +27,229 @@
   border-radius: 0.5rem;
   box-shadow: 0 0.25rem 0.75rem rgb(0 0 0 / 8%);
 }
+
+.scenario-map-scroll {
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.scenario-map-canvas {
+  --map-background: #f4f1e8;
+  --map-grid: rgb(75 63 47 / 10%);
+  --map-line: #6c6255;
+  --map-node-background: #fff;
+  --map-node-border: #756b5e;
+  --map-node-text: #25211d;
+  --map-active: #0d6efd;
+  position: relative;
+  min-width: 720px;
+  overflow: hidden;
+  aspect-ratio: 5 / 3;
+  background-color: var(--map-background);
+  background-image:
+    linear-gradient(var(--map-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--map-grid) 1px, transparent 1px);
+  background-size: 2rem 2rem;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 1rem;
+  box-shadow: inset 0 0 3rem rgb(0 0 0 / 8%);
+}
+
+.scenario-map-lines {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.scenario-map-connection {
+  stroke: var(--map-line);
+  stroke-width: 5;
+  stroke-linecap: round;
+  opacity: 0.75;
+}
+
+.scenario-map-connection.is-secret {
+  stroke: #dc3545;
+  stroke-dasharray: 10 8;
+}
+
+.scenario-map-connection.is-active {
+  stroke: #ffc107;
+  stroke-width: 8;
+  opacity: 1;
+}
+
+.scenario-map-location {
+  position: absolute;
+  z-index: 2;
+  left: var(--map-x);
+  top: var(--map-y);
+  width: 26%;
+  max-width: 180px;
+  min-height: 108px;
+  padding: 0.8rem;
+  color: var(--map-node-text);
+  background: var(--map-node-background);
+  border: 2px solid var(--map-node-border);
+  border-radius: 0.8rem;
+  box-shadow: 0 0.5rem 1rem rgb(0 0 0 / 15%);
+  transform: translate(-50%, -50%);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.scenario-map-location.is-secret {
+  border-style: dashed;
+  border-color: #dc3545;
+}
+
+.scenario-map-location.is-active {
+  z-index: 3;
+  border: 4px solid #ffc107;
+  box-shadow:
+    0 0 0 0.35rem rgb(255 193 7 / 35%),
+    0 0 1.5rem rgb(255 193 7 / 70%),
+    0 0.75rem 1.5rem rgb(0 0 0 / 25%);
+  transform: translate(-50%, -50%) scale(1.08);
+}
+
+.scenario-map-location.is-active::after {
+  position: absolute;
+  bottom: -1rem;
+  left: 50%;
+  padding: 0.2rem 0.55rem;
+  color: #212529;
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+  content: "このシーン";
+  background: #ffc107;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  box-shadow: 0 0.25rem 0.5rem rgb(0 0 0 / 25%);
+  transform: translateX(-50%);
+}
+
+.scenario-map-location-number {
+  display: inline-grid;
+  width: 1.6rem;
+  height: 1.6rem;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: var(--map-node-border);
+  border-radius: 50%;
+  place-items: center;
+}
+
+.scenario-map-secret-label {
+  padding: 0.15rem 0.4rem;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: #dc3545;
+  border-radius: 999px;
+}
+
+.scenario-map-location-name {
+  margin-bottom: 0.25rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.scenario-map-location-description {
+  display: -webkit-box;
+  margin-bottom: 0;
+  overflow: hidden;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.scenario-map-legend-line {
+  display: inline-block;
+  width: 2rem;
+  border-top: 3px solid var(--bs-secondary-color);
+}
+
+.scenario-map-legend-line.is-secret {
+  border-color: #dc3545;
+  border-top-style: dashed;
+}
+
+.scenario-map-legend-current {
+  display: inline-block;
+  width: 1.1rem;
+  height: 1.1rem;
+  background: #ffc107;
+  border: 2px solid #7a5b00;
+  border-radius: 0.25rem;
+  box-shadow: 0 0 0.4rem rgb(255 193 7 / 70%);
+}
+
+.scenario-map--horror {
+  --map-background: #1d191c;
+  --map-grid: rgb(181 52 62 / 12%);
+  --map-line: #a9a1a5;
+  --map-node-background: #31292e;
+  --map-node-border: #94868e;
+  --map-node-text: #f6edf1;
+  --map-active: #dc3545;
+}
+
+.scenario-map--mystery {
+  --map-background: #e9e2cf;
+  --map-grid: rgb(55 67 79 / 12%);
+  --map-line: #394b59;
+  --map-node-background: #fffdf6;
+  --map-node-border: #34495e;
+  --map-node-text: #202a33;
+  --map-active: #0d6efd;
+}
+
+.scenario-map--fantasy {
+  --map-background: #ead9ad;
+  --map-grid: rgb(92 68 32 / 12%);
+  --map-line: #66502e;
+  --map-node-background: #fff4ce;
+  --map-node-border: #765c32;
+  --map-node-text: #352913;
+  --map-active: #198754;
+}
+
+.scenario-map--sci_fi {
+  --map-background: #071a24;
+  --map-grid: rgb(38 198 218 / 18%);
+  --map-line: #26c6da;
+  --map-node-background: #0d2c39;
+  --map-node-border: #26c6da;
+  --map-node-text: #e3fbff;
+  --map-active: #20c997;
+}
+
+.scenario-map--comedy {
+  --map-background: #fff4b8;
+  --map-grid: rgb(255 111 97 / 14%);
+  --map-line: #ff6f61;
+  --map-node-background: #fffef7;
+  --map-node-border: #ff8c42;
+  --map-node-text: #3d3028;
+  --map-active: #d63384;
+}
+
+.scenario-map--network {
+  background-size: 1.25rem 1.25rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scenario-map-location {
+    transition: none;
+  }
+}

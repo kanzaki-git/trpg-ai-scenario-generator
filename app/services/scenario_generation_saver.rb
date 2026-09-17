@@ -1,6 +1,8 @@
 class ScenarioGenerationSaver
   class AssociationError < StandardError; end
 
+  MAX_MAP_LOCATIONS = 8
+
   def initialize(scenario:, generation_result:)
     @scenario = scenario
     @generation_result = generation_result
@@ -8,9 +10,12 @@ class ScenarioGenerationSaver
 
   def call
     Scenario.transaction do
+      validate_map_data!
       save_scenario
 
       locations_by_position = save_locations
+      save_location_connections(locations_by_position)
+
       npcs_by_position = save_npcs(locations_by_position)
       clues_by_position = save_clues
       events_by_position = save_events
@@ -40,7 +45,8 @@ class ScenarioGenerationSaver
       summary: generation_result.summary,
       story_outline: generation_result.story_outline,
       introduction: generation_result.introduction,
-      truth: generation_result.truth
+      truth: generation_result.truth,
+      map_type: generation_result.map_type
     )
 
     scenario.save!
@@ -51,10 +57,28 @@ class ScenarioGenerationSaver
       location = scenario.scenario_locations.create!(
         name: location_data.name,
         description: location_data.description,
+        map_row: location_data.map_row,
+        map_column: location_data.map_column,
+        visibility: location_data.visibility,
         position: location_data.position
       )
 
       records[location_data.position] = location
+    end
+  end
+
+  def save_location_connections(locations_by_position)
+    generation_result.location_connections.each do |connection_data|
+      scenario.scenario_location_connections.create!(
+        source_location: locations_by_position.fetch(
+          connection_data.source_location_position
+        ),
+        destination_location: locations_by_position.fetch(
+          connection_data.destination_location_position
+        ),
+        visibility: connection_data.visibility,
+        position: connection_data.position
+      )
     end
   end
 
@@ -312,6 +336,57 @@ class ScenarioGenerationSaver
         read_aloud_text: cue_data.read_aloud_text,
         position: cue_data.position
       )
+    end
+  end
+
+  def validate_map_data!
+    locations = generation_result.locations
+    connections = generation_result.location_connections
+
+    if locations.size > MAX_MAP_LOCATIONS
+      raise AssociationError,
+            "マップに配置できる場所は最大#{MAX_MAP_LOCATIONS}か所です"
+    end
+
+    location_positions = locations.map(&:position)
+
+    if location_positions.uniq.size != location_positions.size
+      raise AssociationError, "場所のpositionが重複しています"
+    end
+
+    coordinates = locations.map do |location|
+      [ location.map_row, location.map_column ]
+    end
+
+    if coordinates.uniq.size != coordinates.size
+      raise AssociationError, "場所のマップ座標が重複しています"
+    end
+
+    connection_positions = connections.map(&:position)
+
+    if connection_positions.uniq.size != connection_positions.size
+      raise AssociationError, "場所の接続順が重複しています"
+    end
+
+    connections.each do |connection|
+      source_position = connection.source_location_position
+      destination_position =
+        connection.destination_location_position
+
+      unless location_positions.include?(source_position)
+        raise AssociationError,
+              "接続元の場所が存在しません: #{source_position}"
+      end
+
+      unless location_positions.include?(destination_position)
+        raise AssociationError,
+              "接続先の場所が存在しません: #{destination_position}"
+      end
+
+      next unless source_position == destination_position
+
+      raise AssociationError,
+            "同じ場所同士は接続できません: #{source_position}"
     end
   end
 end

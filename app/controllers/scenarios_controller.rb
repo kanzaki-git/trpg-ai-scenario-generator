@@ -79,6 +79,8 @@ class ScenariosController < ApplicationController
   end
 
   def materials
+    load_scenario_map
+
     @scenario_npcs = @scenario.scenario_npcs
       .includes(:initial_location)
       .order(:position)
@@ -104,6 +106,7 @@ class ScenariosController < ApplicationController
       )
       .order(:position)
 
+    load_scenario_map
     preload_npc_initial_locations
   end
 
@@ -143,6 +146,58 @@ class ScenariosController < ApplicationController
       :player_count,
       :play_time
     )
+  end
+
+  def load_scenario_map
+    @map_view =
+      if params[:map_view] == "player"
+        "player"
+      else
+        "gm"
+      end
+
+    locations = @scenario.scenario_locations
+      .where.not(
+        map_row: nil,
+        map_column: nil
+      )
+      .order(:position)
+
+    connections = @scenario.scenario_location_connections
+      .includes(
+        :source_location,
+        :destination_location
+      )
+      .order(:position)
+
+    @map_has_secret_locations =
+      locations.visibility_secret.exists?
+
+    @map_has_secret_connections =
+      connections.visibility_secret.exists?
+
+    @map_has_secret_content =
+      @map_has_secret_locations ||
+      @map_has_secret_connections
+
+    if @map_view == "player"
+      @map_locations = locations
+        .visibility_public
+        .load
+
+      visible_location_ids = @map_locations.map(&:id)
+
+      @map_connections = connections
+        .visibility_public
+        .where(
+          source_location_id: visible_location_ids,
+          destination_location_id: visible_location_ids
+        )
+        .load
+    else
+      @map_locations = locations.load
+      @map_connections = connections.load
+    end
   end
 
   def preload_npc_initial_locations

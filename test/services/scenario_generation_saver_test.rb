@@ -28,8 +28,10 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
     assert_equal "屋敷で事件が発生し調査が始まる", @scenario.story_outline
     assert_equal "あなたたちは屋敷へ招待された。", @scenario.introduction
     assert_equal "執事が宝石を隠していた。", @scenario.truth
+    assert_equal "floor_plan", @scenario.map_type
 
     assert_equal 2, @scenario.scenario_locations.count
+    assert_equal 1, @scenario.scenario_location_connections.count
     assert_equal 1, @scenario.scenario_npcs.count
     assert_equal 1, @scenario.scenario_clues.count
     assert_equal 1, @scenario.scenario_events.count
@@ -42,6 +44,18 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
     assert_equal "玄関ホール", hall.name
     assert_equal "大きな窓のある広いホール。", hall.description
     assert_equal "書斎", study.name
+    assert_equal 1, hall.map_row
+    assert_equal 1, hall.map_column
+    assert_predicate hall, :visibility_public?
+    assert_equal 1, study.map_row
+    assert_equal 2, study.map_column
+    assert_predicate study, :visibility_secret?
+
+    connection = @scenario.scenario_location_connections.first
+    assert_equal hall, connection.source_location
+    assert_equal study, connection.destination_location
+    assert_predicate connection, :visibility_secret?
+    assert_equal 1, connection.position
 
     npc = @scenario.scenario_npcs.first
     assert_equal "執事", npc.name
@@ -237,6 +251,7 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
 
     assert_nil @scenario.title
     assert_empty @scenario.scenario_locations
+    assert_empty @scenario.scenario_location_connections
     assert_empty @scenario.scenario_npcs
     assert_empty @scenario.scenario_clues
     assert_empty @scenario.scenario_events
@@ -251,6 +266,7 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
 
     assert_no_difference [
       "ScenarioLocation.count",
+      "ScenarioLocationConnection.count",
       "ScenarioNpc.count",
       "ScenarioClue.count",
       "ScenarioEvent.count",
@@ -326,6 +342,9 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
     generation_result.locations << ScenarioGenerationSchema::Location.new(
       name: "地下保管庫",
       description: "屋敷の地下にある保管庫。",
+      map_row: 2,
+      map_column: 1,
+      visibility: "public",
       position: 3
     )
 
@@ -449,6 +468,67 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
     assert_empty @scenario.scenario_scenes
   end
 
+  test "存在しない場所への接続が指定された場合は保存しない" do
+    generation_result = build_generation_result
+
+    generation_result.location_connections.first
+      .destination_location_position = 999
+
+    assert_no_difference [
+      "ScenarioLocation.count",
+      "ScenarioLocationConnection.count"
+    ] do
+      error = assert_raises(
+        ScenarioGenerationSaver::AssociationError
+      ) do
+        ScenarioGenerationSaver.new(
+          scenario: @scenario,
+          generation_result: generation_result
+        ).call
+      end
+
+      assert_equal "接続先の場所が存在しません: 999",
+                   error.message
+    end
+
+    assert_nil @scenario.reload.title
+  end
+
+  test "場所が8か所を超える場合は保存しない" do
+    generation_result = build_generation_result
+
+    (3..9).each do |position|
+      generation_result.locations <<
+        ScenarioGenerationSchema::Location.new(
+          name: "場所#{position}",
+          description: "場所#{position}の説明。",
+          map_row: ((position - 1) / 3) + 1,
+          map_column: ((position - 1) % 3) + 1,
+          visibility: "public",
+          position: position
+        )
+    end
+
+    assert_no_difference [
+      "ScenarioLocation.count",
+      "ScenarioLocationConnection.count"
+    ] do
+      error = assert_raises(
+        ScenarioGenerationSaver::AssociationError
+      ) do
+        ScenarioGenerationSaver.new(
+          scenario: @scenario,
+          generation_result: generation_result
+        ).call
+      end
+
+      assert_equal "マップに配置できる場所は最大8か所です",
+                   error.message
+    end
+
+    assert_nil @scenario.reload.title
+  end
+
   private
 
   def build_generation_result(clue_positions: [ 1 ], scene_data: nil)
@@ -458,16 +538,31 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
       story_outline: "屋敷で事件が発生し調査が始まる",
       introduction: "あなたたちは屋敷へ招待された。",
       truth: "執事が宝石を隠していた。",
+      map_type: "floor_plan",
       locations: [
         ScenarioGenerationSchema::Location.new(
           name: "玄関ホール",
           description: "大きな窓のある広いホール。",
+          map_row: 1,
+          map_column: 1,
+          visibility: "public",
           position: 1
         ),
         ScenarioGenerationSchema::Location.new(
           name: "書斎",
           description: "本棚と大きな机がある部屋。",
+          map_row: 1,
+          map_column: 2,
+          visibility: "secret",
           position: 2
+        )
+      ],
+      location_connections: [
+        ScenarioGenerationSchema::LocationConnection.new(
+          source_location_position: 1,
+          destination_location_position: 2,
+          visibility: "secret",
+          position: 1
         )
       ],
       npcs: [

@@ -63,12 +63,23 @@
         </section>
       <% end %>
 
-      <main data-controller="scene-jump">
+      <% initial_location_ids =
+           @scenario_scenes.first&.scenario_location_ids || [] %>
+
+      <main
+        data-controller="scene-jump scenario-map"
+        data-scenario-map-active-location-ids-value="<%= initial_location_ids.to_json %>"
+      >
+        <%= render "scenario_map",
+                   highlighted_location_ids: initial_location_ids,
+                   interactive: true %>
         <% if @scenario_scenes.any? %>
           <% @scenario_scenes.each_with_index do |scene, scene_index| %>
             <details
               id="scene-<%= scene.position %>"
               class="card border-0 shadow-sm mb-4"
+              data-action="toggle->scenario-map#highlightScene"
+              data-location-ids="<%= scene.scenario_location_ids.to_json %>"
               <%= "open" if scene_index.zero? %>
             >
               <summary
