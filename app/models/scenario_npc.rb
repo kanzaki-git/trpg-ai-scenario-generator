@@ -6,6 +6,7 @@ class ScenarioNpc < ApplicationRecord
 
   has_many :scenario_scene_npcs, dependent: :destroy
   has_many :scenario_scenes, through: :scenario_scene_npcs
+  has_many :scenario_progress_npcs, dependent: :destroy
 
   validate :initial_location_belongs_to_same_scenario
 

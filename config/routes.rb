@@ -7,6 +7,10 @@ Rails.application.routes.draw do
   resources :users, only: %i[new create]
   resources :password_resets, only: %i[new create edit update]
   resources :scenarios, only: %i[index new create show destroy] do
+    resource :progress,
+         only: :update,
+         controller: "scenario_progresses"
+
     member do
       get :materials
       get :scenes

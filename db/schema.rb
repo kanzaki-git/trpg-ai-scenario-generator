@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_15_210810) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_18_043620) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -134,6 +134,43 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_15_210810) do
     t.datetime "updated_at", null: false
     t.index ["initial_location_id"], name: "index_scenario_npcs_on_initial_location_id"
     t.index ["scenario_id"], name: "index_scenario_npcs_on_scenario_id"
+  end
+
+  create_table "scenario_progress_clues", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "scenario_clue_id", null: false
+    t.bigint "scenario_progress_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["scenario_clue_id"], name: "index_scenario_progress_clues_on_scenario_clue_id"
+    t.index ["scenario_progress_id", "scenario_clue_id"], name: "idx_progress_clues_unique", unique: true
+    t.index ["scenario_progress_id"], name: "index_scenario_progress_clues_on_scenario_progress_id"
+  end
+
+  create_table "scenario_progress_locations", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "scenario_location_id", null: false
+    t.bigint "scenario_progress_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["scenario_location_id"], name: "index_scenario_progress_locations_on_scenario_location_id"
+    t.index ["scenario_progress_id", "scenario_location_id"], name: "idx_progress_locations_unique", unique: true
+    t.index ["scenario_progress_id"], name: "index_scenario_progress_locations_on_scenario_progress_id"
+  end
+
+  create_table "scenario_progress_npcs", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "scenario_npc_id", null: false
+    t.bigint "scenario_progress_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["scenario_npc_id"], name: "index_scenario_progress_npcs_on_scenario_npc_id"
+    t.index ["scenario_progress_id", "scenario_npc_id"], name: "idx_progress_npcs_unique", unique: true
+    t.index ["scenario_progress_id"], name: "index_scenario_progress_npcs_on_scenario_progress_id"
+  end
+
+  create_table "scenario_progresses", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "scenario_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["scenario_id"], name: "index_scenario_progresses_on_scenario_id", unique: true
   end
 
   create_table "scenario_scene_clues", force: :cascade do |t|
@@ -264,6 +301,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_15_210810) do
   add_foreign_key "scenario_locations", "scenarios"
   add_foreign_key "scenario_npcs", "scenario_locations", column: "initial_location_id"
   add_foreign_key "scenario_npcs", "scenarios"
+  add_foreign_key "scenario_progress_clues", "scenario_clues"
+  add_foreign_key "scenario_progress_clues", "scenario_progresses"
+  add_foreign_key "scenario_progress_locations", "scenario_locations"
+  add_foreign_key "scenario_progress_locations", "scenario_progresses"
+  add_foreign_key "scenario_progress_npcs", "scenario_npcs"
+  add_foreign_key "scenario_progress_npcs", "scenario_progresses"
+  add_foreign_key "scenario_progresses", "scenarios"
   add_foreign_key "scenario_scene_clues", "scenario_clues"
   add_foreign_key "scenario_scene_clues", "scenario_scenes"
   add_foreign_key "scenario_scene_events", "scenario_events"

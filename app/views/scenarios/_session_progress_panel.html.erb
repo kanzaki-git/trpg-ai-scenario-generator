@@ -1,0 +1,193 @@
+<div
+  class="offcanvas offcanvas-end"
+  tabindex="-1"
+  id="session-progress-panel"
+  aria-labelledby="session-progress-panel-label"
+  data-bs-scroll="true"
+  data-bs-backdrop="false"
+>
+  <div class="offcanvas-header border-bottom">
+    <div>
+      <h2
+        id="session-progress-panel-label"
+        class="offcanvas-title h4 fw-bold mb-1"
+      >
+        セッション進行
+      </h2>
+
+      <p class="small text-secondary mb-0">
+        提示・訪問・登場した項目を記録します。
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="btn-close"
+      data-bs-dismiss="offcanvas"
+      aria-label="閉じる"
+    ></button>
+  </div>
+
+  <div class="offcanvas-body">
+    <%= form_with url: scenario_progress_path(@scenario),
+                  method: :patch,
+                  scope: :scenario_progress do %>
+      <%= hidden_field_tag(
+            "scenario_progress[clue_ids][]",
+            ""
+          ) %>
+
+      <%= hidden_field_tag(
+            "scenario_progress[location_ids][]",
+            ""
+          ) %>
+
+      <%= hidden_field_tag(
+            "scenario_progress[npc_ids][]",
+            ""
+          ) %>
+
+      <details class="border rounded-3 mb-3" open>
+        <summary
+          class="fw-bold px-3 py-3"
+          style="cursor: pointer;"
+        >
+          提示済みの手がかり
+          <span class="badge text-bg-secondary ms-1">
+            <%= @progress_clues.size %>
+          </span>
+        </summary>
+
+        <% if @progress_clues.any? %>
+          <div class="list-group list-group-flush border-top">
+            <% @progress_clues.each do |clue| %>
+              <label
+                class="list-group-item d-flex gap-3 py-3"
+                for="scenario-progress-clue-<%= clue.id %>"
+              >
+                <%= check_box_tag(
+                      "scenario_progress[clue_ids][]",
+                      clue.id,
+                      @presented_clue_ids.include?(clue.id),
+                      id: "scenario-progress-clue-#{clue.id}",
+                      class: "form-check-input flex-shrink-0 mt-1"
+                    ) %>
+
+                <span class="text-break">
+                  <span class="fw-bold d-block mb-1">
+                    手がかり<%= clue.position %>
+                  </span>
+
+                  <span class="small">
+                    <%= clue.content %>
+                  </span>
+                </span>
+              </label>
+            <% end %>
+          </div>
+        <% else %>
+          <p class="text-secondary px-3 pb-3 mb-0">
+            手がかりは登録されていません。
+          </p>
+        <% end %>
+      </details>
+
+      <details class="border rounded-3 mb-3" open>
+        <summary
+          class="fw-bold px-3 py-3"
+          style="cursor: pointer;"
+        >
+          訪問済みの場所
+          <span class="badge text-bg-secondary ms-1">
+            <%= @progress_locations.size %>
+          </span>
+        </summary>
+
+        <% if @progress_locations.any? %>
+          <div class="list-group list-group-flush border-top">
+            <% @progress_locations.each do |location| %>
+              <label
+                class="list-group-item d-flex gap-3 py-3"
+                for="scenario-progress-location-<%= location.id %>"
+              >
+                <%= check_box_tag(
+                      "scenario_progress[location_ids][]",
+                      location.id,
+                      @visited_location_ids.include?(location.id),
+                      id: "scenario-progress-location-#{location.id}",
+                      class: "form-check-input flex-shrink-0 mt-1"
+                    ) %>
+
+                <span class="text-break">
+                  <span class="fw-bold d-block mb-1">
+                    <%= location.name %>
+                  </span>
+
+                  <span class="small text-secondary">
+                    <%= location.description %>
+                  </span>
+                </span>
+              </label>
+            <% end %>
+          </div>
+        <% else %>
+          <p class="text-secondary px-3 pb-3 mb-0">
+            場所は登録されていません。
+          </p>
+        <% end %>
+      </details>
+
+      <details class="border rounded-3 mb-3" open>
+        <summary
+          class="fw-bold px-3 py-3"
+          style="cursor: pointer;"
+        >
+          登場済みのNPC
+          <span class="badge text-bg-secondary ms-1">
+            <%= @progress_npcs.size %>
+          </span>
+        </summary>
+
+        <% if @progress_npcs.any? %>
+          <div class="list-group list-group-flush border-top">
+            <% @progress_npcs.each do |npc| %>
+              <label
+                class="list-group-item d-flex gap-3 py-3"
+                for="scenario-progress-npc-<%= npc.id %>"
+              >
+                <%= check_box_tag(
+                      "scenario_progress[npc_ids][]",
+                      npc.id,
+                      @appeared_npc_ids.include?(npc.id),
+                      id: "scenario-progress-npc-#{npc.id}",
+                      class: "form-check-input flex-shrink-0 mt-1"
+                    ) %>
+
+                <span class="text-break">
+                  <span class="fw-bold d-block mb-1">
+                    <%= npc.name %>
+                  </span>
+
+                  <span class="small text-secondary">
+                    <%= npc.description %>
+                  </span>
+                </span>
+              </label>
+            <% end %>
+          </div>
+        <% else %>
+          <p class="text-secondary px-3 pb-3 mb-0">
+            NPCは登録されていません。
+          </p>
+        <% end %>
+      </details>
+
+      <div class="position-sticky bottom-0 bg-body pt-3 pb-2">
+        <%= submit_tag(
+              "進行状況を保存",
+              class: "btn btn-primary w-100"
+            ) %>
+      </div>
+    <% end %>
+  </div>
+</div>
