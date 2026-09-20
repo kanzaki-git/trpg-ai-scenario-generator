@@ -337,6 +337,28 @@
           <% end %>
         </section>
       </main>
+
+      <button
+        type="button"
+        class="
+          btn
+          btn-primary
+          shadow
+          position-fixed
+          bottom-0
+          end-0
+          m-3
+          m-md-4
+          z-3
+        "
+        data-bs-toggle="offcanvas"
+        data-bs-target="#session-progress-panel"
+        aria-controls="session-progress-panel"
+      >
+        セッション進行
+      </button>
+
+      <%= render "session_progress_panel" %>
     </div>
   </div>
 </div>

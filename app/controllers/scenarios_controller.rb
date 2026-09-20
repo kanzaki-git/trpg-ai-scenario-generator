@@ -108,6 +108,7 @@ class ScenariosController < ApplicationController
 
     load_scenario_map
     preload_npc_initial_locations
+    load_scenario_progress
   end
 
   def conclusion; end
@@ -212,5 +213,27 @@ class ScenariosController < ApplicationController
       records: npcs,
       associations: :initial_location
     ).call
+  end
+
+  def load_scenario_progress
+    @scenario_progress =
+      @scenario.scenario_progress ||
+      @scenario.build_scenario_progress
+
+    @progress_clues = @scenario.scenario_clues
+      .order(:position)
+      .load
+
+    @progress_locations = @scenario.scenario_locations
+      .order(:position)
+      .load
+
+    @progress_npcs = @scenario.scenario_npcs
+      .order(:position)
+      .load
+
+    @presented_clue_ids = @scenario_progress.presented_clue_ids
+    @visited_location_ids = @scenario_progress.visited_location_ids
+    @appeared_npc_ids = @scenario_progress.appeared_npc_ids
   end
 end

@@ -488,6 +488,72 @@ class ScenariosControllerTest < ActionDispatch::IntegrationTest
     assert_select "h1", text: "シーン進行"
   end
 
+  test "シーン進行画面に保存済みのセッション進行を表示できる" do
+    scenario = create_scenario
+
+    clue = scenario.scenario_clues.create!(
+      content: "提示済みの手がかり",
+      position: 1
+    )
+
+    location = scenario.scenario_locations.create!(
+      name: "訪問済みの場所",
+      description: "すでに訪問した場所です。",
+      position: 1,
+      visibility: :public
+    )
+
+    npc = scenario.scenario_npcs.create!(
+      name: "登場済みのNPC",
+      description: "すでに登場したNPCです。",
+      position: 1
+    )
+
+    scenario.create_scenario_progress!(
+      presented_clues: [ clue ],
+      visited_locations: [ location ],
+      appeared_npcs: [ npc ]
+    )
+
+    get scenes_scenario_url(scenario)
+
+    assert_response :success
+
+    assert_select(
+      'button[data-bs-target="#session-progress-panel"]',
+      text: "セッション進行"
+    )
+
+    assert_select "div#session-progress-panel.offcanvas"
+
+    assert_select(
+      "form[action=?]",
+      scenario_progress_path(scenario)
+    ) do
+      assert_select(
+        'input[name=?][value=?][checked="checked"]',
+        "scenario_progress[clue_ids][]",
+        clue.id.to_s
+      )
+
+      assert_select(
+        'input[name=?][value=?][checked="checked"]',
+        "scenario_progress[location_ids][]",
+        location.id.to_s
+      )
+
+      assert_select(
+        'input[name=?][value=?][checked="checked"]',
+        "scenario_progress[npc_ids][]",
+        npc.id.to_s
+      )
+
+      assert_select(
+        'input[type="submit"][value="進行状況を保存"]'
+      )
+    end
+  end
+
   test "シーンの移動条件と複数の移動先を表示できる" do
     scenario = create_scenario
 
