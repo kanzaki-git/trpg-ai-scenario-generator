@@ -103,6 +103,8 @@ class ScenarioGenerationSchema < OpenAI::BaseModel
   end
 
   required :title, String
+  required :public_title, String
+  required :public_description, String
   required :summary, String
   required :story_outline, String
   required :introduction, String

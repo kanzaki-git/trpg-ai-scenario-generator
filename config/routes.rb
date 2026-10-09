@@ -3,13 +3,21 @@ Rails.application.routes.draw do
 
   get "terms", to: "terms#show", as: :terms
   get "privacy_policy", to: "privacy_policies#show", as: :privacy_policy
+  get "shared_scenarios/:share_token", to: "public_scenarios#show", as: :shared_scenario
 
   resources :users, only: %i[new create]
   resources :password_resets, only: %i[new create edit update]
   resources :scenarios, only: %i[index new create show destroy] do
     resource :progress,
-         only: :update,
-         controller: "scenario_progresses"
+            only: :update,
+            controller: "scenario_progresses"
+
+    resource :share,
+            only: %i[edit create update],
+            controller: "scenario_shares" do
+      patch :publish
+      patch :unpublish
+    end
 
     member do
       get :materials

@@ -12,6 +12,7 @@ class ScenarioGenerationSaver
     Scenario.transaction do
       validate_map_data!
       save_scenario
+      save_scenario_share
 
       locations_by_position = save_locations
       save_location_connections(locations_by_position)
@@ -50,6 +51,14 @@ class ScenarioGenerationSaver
     )
 
     scenario.save!
+  end
+
+  def save_scenario_share
+    scenario.create_scenario_share!(
+      public_title: generation_result.public_title.truncate(100),
+      public_description:
+        generation_result.public_description.truncate(500)
+    )
   end
 
   def save_locations

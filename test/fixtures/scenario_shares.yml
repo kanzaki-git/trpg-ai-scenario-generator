@@ -1,0 +1,12 @@
+one:
+  scenario: one
+  public_title: 霧に包まれた港町
+  public_description: 港町で起きた不可解な事件を調査するミステリーシナリオです。
+  share_token: scenario-share-token-one
+  published_at: 2026-10-06 18:00:00
+
+two:
+  scenario: two
+  public_title: 忘れられた遺跡
+  public_description: 古代遺跡に隠された秘密を探るファンタジーシナリオです。
+  share_token: scenario-share-token-two

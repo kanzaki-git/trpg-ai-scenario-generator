@@ -30,6 +30,22 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
     assert_equal "執事が宝石を隠していた。", @scenario.truth
     assert_equal "floor_plan", @scenario.map_type
 
+    share = @scenario.scenario_share
+
+    assert_equal "消えた宝石と静かな屋敷",
+                share.public_title
+
+    assert_equal(
+      "招待を受けて古い屋敷を訪れた探索者たち。" \
+      "そこで待っていたのは、忽然と姿を消した宝石と、" \
+      "何かを隠す住人たちだった。" \
+      "屋敷を調査し、事件の謎を解き明かそう。",
+      share.public_description
+    )
+
+    assert_predicate share.share_token, :present?
+    assert_not share.published?
+
     assert_equal 2, @scenario.scenario_locations.count
     assert_equal 1, @scenario.scenario_location_connections.count
     assert_equal 1, @scenario.scenario_npcs.count
@@ -257,6 +273,7 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
     assert_empty @scenario.scenario_events
     assert_empty @scenario.scenario_scenes
     assert_empty @scenario.scenario_endings
+    assert_nil @scenario.scenario_share
   end
 
   test "探索のきっかけの保存途中で失敗した場合もすべて元に戻す" do
@@ -534,6 +551,8 @@ class ScenarioGenerationSaverTest < ActiveSupport::TestCase
   def build_generation_result(clue_positions: [ 1 ], scene_data: nil)
     ScenarioGenerationSchema.new(
       title: "消えた宝石の謎",
+      public_title: "消えた宝石と静かな屋敷",
+      public_description: "招待を受けて古い屋敷を訪れた探索者たち。そこで待っていたのは、忽然と姿を消した宝石と、何かを隠す住人たちだった。屋敷を調査し、事件の謎を解き明かそう。",
       summary: "宝石の行方を調査する物語",
       story_outline: "屋敷で事件が発生し調査が始まる",
       introduction: "あなたたちは屋敷へ招待された。",

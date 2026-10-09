@@ -530,6 +530,8 @@ end
   def valid_generation_data
     {
       title: "消えた宝石の謎",
+      public_title: "消えた宝石と静かな屋敷",
+      public_description: "招待を受けて古い屋敷を訪れた探索者たち。そこで待っていたのは、忽然と姿を消した宝石と、何かを隠す住人たちだった。屋敷を調査し、事件の謎を解き明かそう。",
       summary: "宝石の行方を調査する物語",
       story_outline: "屋敷で事件が発生し調査が始まる",
       introduction: "あなたたちは屋敷へ招待された。",
