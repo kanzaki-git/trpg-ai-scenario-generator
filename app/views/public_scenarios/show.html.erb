@@ -1,0 +1,161 @@
+<% content_for :title,
+               "#{@scenario_share.public_title} | TRPG AIシナリオジェネレーター" %>
+
+<% content_for :head do %>
+  <%= tag.meta(
+        name: "description",
+        content: @scenario_share.public_description
+      ) %>
+
+  <%= tag.meta(
+        name: "robots",
+        content: "noindex, nofollow, noarchive"
+      ) %>
+
+  <%= tag.link(
+        rel: "canonical",
+        href: shared_scenario_url(
+          share_token: @scenario_share.share_token
+        )
+      ) %>
+
+  <%= tag.meta(
+        property: "og:title",
+        content: @scenario_share.public_title
+      ) %>
+
+  <%= tag.meta(
+        property: "og:description",
+        content: @scenario_share.public_description
+      ) %>
+
+  <%= tag.meta(
+        property: "og:type",
+        content: "website"
+      ) %>
+
+  <%= tag.meta(
+        property: "og:url",
+        content: shared_scenario_url(
+          share_token: @scenario_share.share_token
+        )
+      ) %>
+
+  <%= tag.meta(
+        property: "og:image",
+        content: image_url("scenario_share_ogp.png")
+      ) %>
+
+  <%= tag.meta(
+        property: "og:image:width",
+        content: "1200"
+      ) %>
+
+  <%= tag.meta(
+        property: "og:image:height",
+        content: "630"
+      ) %>
+
+  <%= tag.meta(
+        property: "og:image:alt",
+        content: "TRPG AI Scenario Generator"
+      ) %>
+
+  <%= tag.meta(
+        property: "og:site_name",
+        content: "TRPG AIシナリオジェネレーター"
+      ) %>
+
+  <%= tag.meta(
+        property: "og:locale",
+        content: "ja_JP"
+      ) %>
+
+  <%= tag.meta(
+        name: "twitter:card",
+        content: "summary_large_image"
+      ) %>
+
+  <%= tag.meta(
+        name: "twitter:title",
+        content: @scenario_share.public_title
+      ) %>
+
+  <%= tag.meta(
+        name: "twitter:description",
+        content: @scenario_share.public_description
+      ) %>
+
+  <%= tag.meta(
+        name: "twitter:image",
+        content: image_url("scenario_share_ogp.png")
+      ) %>
+<% end %>
+
+<main class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <article class="card shadow-sm">
+        <div class="card-body p-4 p-md-5">
+          <p class="text-primary fw-bold mb-2">
+            TRPGシナリオ
+          </p>
+
+          <h1 class="display-6 fw-bold mb-4">
+            <%= @scenario_share.public_title %>
+          </h1>
+
+          <div class="mb-4">
+            <p class="fs-5 lh-lg mb-0">
+              <%= simple_format(
+                    @scenario_share.public_description,
+                    {},
+                    wrapper_tag: "span"
+                  ) %>
+            </p>
+          </div>
+
+          <hr class="my-4">
+
+          <h2 class="h4 mb-3">シナリオ情報</h2>
+
+          <dl class="row mb-0">
+            <dt class="col-sm-4">
+              ジャンル
+            </dt>
+            <dd class="col-sm-8">
+              <%= @scenario.genre %>
+            </dd>
+
+            <dt class="col-sm-4">
+              雰囲気
+            </dt>
+            <dd class="col-sm-8">
+              <%= @scenario.tone %>
+            </dd>
+
+            <dt class="col-sm-4">
+              プレイ人数
+            </dt>
+            <dd class="col-sm-8">
+              <%= @scenario.player_count %>人
+            </dd>
+
+            <dt class="col-sm-4">
+              想定プレイ時間
+            </dt>
+            <dd class="col-sm-8">
+              約<%= @scenario.play_time %>分
+            </dd>
+          </dl>
+        </div>
+      </article>
+
+      <div class="text-center mt-4">
+        <%= link_to "サービスについて見る",
+                    root_path,
+                    class: "btn btn-outline-primary" %>
+      </div>
+    </div>
+  </div>
+</main>

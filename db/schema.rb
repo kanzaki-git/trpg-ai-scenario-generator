@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_18_043620) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_06_090604) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -250,6 +250,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_18_043620) do
     t.index ["scenario_id"], name: "index_scenario_scenes_on_scenario_id"
   end
 
+  create_table "scenario_shares", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "public_description"
+    t.string "public_title"
+    t.datetime "published_at"
+    t.bigint "scenario_id", null: false
+    t.string "share_token", null: false
+    t.datetime "updated_at", null: false
+    t.index ["scenario_id"], name: "index_scenario_shares_on_scenario_id", unique: true
+    t.index ["share_token"], name: "index_scenario_shares_on_share_token", unique: true
+  end
+
   create_table "scenarios", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "generation_status", default: "completed", null: false
@@ -320,5 +332,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_18_043620) do
   add_foreign_key "scenario_scene_transitions", "scenario_scenes", column: "destination_scene_id"
   add_foreign_key "scenario_scene_transitions", "scenario_scenes", column: "source_scene_id"
   add_foreign_key "scenario_scenes", "scenarios"
+  add_foreign_key "scenario_shares", "scenarios"
   add_foreign_key "scenarios", "users"
 end

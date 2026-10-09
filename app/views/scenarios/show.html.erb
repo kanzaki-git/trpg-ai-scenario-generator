@@ -24,6 +24,12 @@
             プレイ時間：<%= @scenario.play_time %>分
           </span>
         </div>
+
+        <div class="mt-3">
+          <%= link_to "シナリオを共有",
+                      edit_scenario_share_path(@scenario),
+                      class: "btn btn-outline-primary" %>
+        </div>
       </header>
 
       <%= render "navigation" %>

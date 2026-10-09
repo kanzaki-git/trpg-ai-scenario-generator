@@ -1,0 +1,178 @@
+<% content_for :title, "シナリオ共有設定" %>
+
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="mb-4">
+        <h1 class="h2">シナリオ共有設定</h1>
+        <p class="text-muted mb-0">
+          プレイヤーに見せるタイトルと紹介文を設定します。
+        </p>
+      </div>
+
+      <div class="alert alert-warning">
+        真相、エンディング、秘密の手がかりなど、
+        プレイヤーへのネタバレを紹介文に含めないでください。
+      </div>
+
+      <% if @scenario_share.errors.any? %>
+        <div class="alert alert-danger">
+          <p class="fw-bold mb-2">
+            入力内容を確認してください。
+          </p>
+
+          <ul class="mb-0">
+            <% @scenario_share.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <div class="card shadow-sm mb-4">
+        <div class="card-body">
+          <%= form_with(
+                model: @scenario_share,
+                url: scenario_share_path(@scenario),
+                method: @scenario_share.persisted? ? :patch : :post
+              ) do |form| %>
+            <div class="mb-3">
+              <%= form.label :public_title,
+                             "公開用タイトル",
+                             class: "form-label fw-bold" %>
+
+              <%= form.text_field :public_title,
+                                  class: "form-control",
+                                  maxlength: 100,
+                                  required: true %>
+
+              <div class="form-text">
+                100文字以内で入力してください。
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <%= form.label :public_description,
+                             "ネタバレを含まない紹介文",
+                             class: "form-label fw-bold" %>
+
+              <%= form.text_area :public_description,
+                                 class: "form-control",
+                                 rows: 7,
+                                 maxlength: 500,
+                                 required: true %>
+
+              <div class="form-text">
+                500文字以内で入力してください。
+                この文章は共有ページやSNSのプレビューに使用されます。
+              </div>
+            </div>
+
+            <%= form.submit(
+                  @scenario_share.persisted? ? "共有設定を更新" : "共有設定を保存",
+                  class: "btn btn-primary"
+                ) %>
+          <% end %>
+        </div>
+      </div>
+
+      <% if @scenario_share.persisted? %>
+        <div class="card shadow-sm mb-4">
+          <div class="card-body">
+            <h2 class="h5">公開状態</h2>
+
+            <% if @scenario_share.published? %>
+              <p>
+                <span class="badge text-bg-success">
+                  公開中
+                </span>
+              </p>
+
+              <p class="text-muted">
+                共有URLを知っている人は紹介ページを閲覧できます。
+              </p>
+
+              <div
+                class="mb-4"
+                data-controller="clipboard"
+              >
+                <label
+                  for="scenario-share-url"
+                  class="form-label fw-bold"
+                >
+                  共有URL
+                </label>
+
+                <div class="input-group">
+                  <input
+                    id="scenario-share-url"
+                    type="text"
+                    class="form-control"
+                    value="<%= shared_scenario_url(
+                                  share_token: @scenario_share.share_token
+                                ) %>"
+                    readonly
+                    data-clipboard-target="source"
+                  >
+
+                  <button
+                    type="button"
+                    class="btn btn-outline-primary"
+                    data-action="clipboard#copy"
+                  >
+                    URLをコピー
+                  </button>
+                </div>
+
+                <p
+                  class="small mt-2 mb-3 d-none"
+                  role="status"
+                  data-clipboard-target="feedback"
+                ></p>
+
+                <%= link_to "紹介ページを確認",
+                            shared_scenario_path(
+                              share_token: @scenario_share.share_token
+                            ),
+                            class: "btn btn-outline-secondary",
+                            target: "_blank",
+                            rel: "noopener" %>
+              </div>
+
+              <%= button_to "共有を停止",
+                            unpublish_scenario_share_path(@scenario),
+                            method: :patch,
+                            class: "btn btn-outline-danger",
+                            data: {
+                              turbo_confirm: "シナリオの共有を停止しますか？"
+                            } %>
+            <% else %>
+              <p>
+                <span class="badge text-bg-secondary">
+                  非公開
+                </span>
+              </p>
+
+              <p class="text-muted">
+                現在は共有URLから閲覧できません。
+              </p>
+
+              <%= button_to "共有を開始",
+                            publish_scenario_share_path(@scenario),
+                            method: :patch,
+                            class: "btn btn-success" %>
+            <% end %>
+          </div>
+        </div>
+      <% else %>
+        <div class="alert alert-info">
+          公開用タイトルと紹介文を保存すると、共有を開始できるようになります。
+        </div>
+      <% end %>
+
+      <%= link_to "シナリオ詳細へ戻る",
+                  scenario_path(@scenario),
+                  class: "btn btn-outline-secondary" %>
+    </div>
+  </div>
+</div>
