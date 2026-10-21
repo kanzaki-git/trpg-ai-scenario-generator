@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_06_090604) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_21_140832) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -168,8 +168,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_06_090604) do
 
   create_table "scenario_progresses", force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.bigint "current_location_id"
+    t.string "player_token", null: false
     t.bigint "scenario_id", null: false
     t.datetime "updated_at", null: false
+    t.index ["current_location_id"], name: "index_scenario_progresses_on_current_location_id"
+    t.index ["player_token"], name: "index_scenario_progresses_on_player_token", unique: true
     t.index ["scenario_id"], name: "index_scenario_progresses_on_scenario_id", unique: true
   end
 
@@ -319,6 +323,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_06_090604) do
   add_foreign_key "scenario_progress_locations", "scenario_progresses"
   add_foreign_key "scenario_progress_npcs", "scenario_npcs"
   add_foreign_key "scenario_progress_npcs", "scenario_progresses"
+  add_foreign_key "scenario_progresses", "scenario_locations", column: "current_location_id", on_delete: :nullify
   add_foreign_key "scenario_progresses", "scenarios"
   add_foreign_key "scenario_scene_clues", "scenario_clues"
   add_foreign_key "scenario_scene_clues", "scenario_scenes"
