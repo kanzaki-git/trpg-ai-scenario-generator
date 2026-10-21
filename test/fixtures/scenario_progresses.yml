@@ -1,7 +1,7 @@
-# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
-
 one:
   scenario: one
+  player_token: test_player_token_one
 
 two:
   scenario: two
+  player_token: test_player_token_two
