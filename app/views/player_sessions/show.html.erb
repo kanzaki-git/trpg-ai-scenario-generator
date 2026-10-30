@@ -1,0 +1,58 @@
+<% content_for :title, "#{@scenario.title} | セッション情報" %>
+<% content_for :robots, "noindex, nofollow" %>
+
+<main class="container py-4">
+  <header class="mb-5">
+    <h1 class="h2 fw-bold"><%= @scenario.title %></h1>
+    <p class="text-secondary">
+      プレイヤー向けセッション情報
+    </p>
+  </header>
+
+  <section class="mb-5">
+    <h2 class="h3 fw-bold">現在地</h2>
+
+    <% if @current_location&.visibility_public? %>
+      <div class="card">
+        <div class="card-body">
+          <h3 class="h5 mb-0">
+            <%= @current_location.name %>
+          </h3>
+        </div>
+      </div>
+    <% elsif @current_location.present? %>
+      <div class="alert alert-secondary">
+        現在地の情報はまだ公開されていません。
+      </div>
+    <% else %>
+      <div class="alert alert-secondary">
+        現在地は未設定です。
+      </div>
+    <% end %>
+  </section>
+
+  <%= render "scenarios/scenario_map",
+            highlighted_location_ids: @map_locations
+              .select { |location| location.id == @current_location&.id }
+              .map(&:id),
+            show_view_switcher: false,
+            highlight_label: "現在地" %>
+
+  <section class="mb-5">
+    <h2 class="h3 fw-bold">登場人物</h2>
+
+    <% if @appeared_npcs.any? %>
+      <ul class="list-group">
+        <% @appeared_npcs.each do |npc| %>
+          <li class="list-group-item">
+            <%= npc.name %>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <div class="alert alert-secondary">
+        まだ登場した人物はいません。
+      </div>
+    <% end %>
+  </section>
+</main>

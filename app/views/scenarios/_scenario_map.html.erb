@@ -31,33 +31,35 @@
       </p>
     </div>
 
-    <div
-      class="btn-group"
-      role="group"
-      aria-label="マップの表示対象"
-    >
-      <%= link_to(
-            "GM向け",
-            url_for(map_view: "gm"),
-            class: [
-              "btn",
-              @map_view == "gm" ?
-                "btn-primary" :
-                "btn-outline-primary"
-            ]
-          ) %>
+    <% if local_assigns.fetch(:show_view_switcher, true) %>
+      <div
+        class="btn-group"
+        role="group"
+        aria-label="マップの表示対象"
+      >
+        <%= link_to(
+              "GM向け",
+              url_for(map_view: "gm"),
+              class: [
+                "btn",
+                @map_view == "gm" ?
+                  "btn-primary" :
+                  "btn-outline-primary"
+              ]
+            ) %>
 
-      <%= link_to(
-            "プレイヤー向け",
-            url_for(map_view: "player"),
-            class: [
-              "btn",
-              @map_view == "player" ?
-                "btn-primary" :
-                "btn-outline-primary"
-            ]
-          ) %>
-    </div>
+        <%= link_to(
+              "プレイヤー向け",
+              url_for(map_view: "player"),
+              class: [
+                "btn",
+                @map_view == "player" ?
+                  "btn-primary" :
+                  "btn-outline-primary"
+              ]
+            ) %>
+      </div>
+    <% end %>
   </div>
 
   <% if @map_locations.any? %>
@@ -174,7 +176,10 @@
       <% if highlighted_location_ids.any? %>
         <span class="d-inline-flex align-items-center gap-2">
           <span class="scenario-map-legend-current"></span>
-          このシーンの場所
+          <%= local_assigns.fetch(
+                :highlight_label,
+                "このシーンの場所"
+              ) %>
         </span>
       <% end %>
     </div>
