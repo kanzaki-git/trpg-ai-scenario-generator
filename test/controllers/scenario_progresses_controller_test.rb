@@ -47,7 +47,10 @@ class ScenarioProgressesControllerTest <
       }
     end
 
-    assert_redirected_to scenes_scenario_path(@scenario)
+    assert_redirected_to scenes_scenario_path(
+      @scenario,
+      session_progress_open: "1"
+    )
     assert_equal "進行状況を保存しました。", flash[:notice]
 
     progress = @scenario.reload.scenario_progress
@@ -135,6 +138,162 @@ class ScenarioProgressesControllerTest <
     assert_empty progress.presented_clue_ids
     assert_empty progress.visited_location_ids
     assert_empty progress.appeared_npc_ids
+  end
+
+  test "現在地を保存できる" do
+    location = @scenario.scenario_locations.order(:position).first!
+
+    patch scenario_progress_path(@scenario), params: {
+      scenario_progress: {
+        current_location_id: location.id,
+        clue_ids: [ "" ],
+        location_ids: [ "" ],
+        npc_ids: [ "" ]
+      }
+    }
+
+    assert_response :see_other
+    assert_equal(
+      location.id,
+      @scenario.reload.scenario_progress.current_location_id
+    )
+  end
+
+  test "現在地を未設定に戻せる" do
+    location = @scenario.scenario_locations.order(:position).first!
+
+    progress = @scenario.create_scenario_progress!(
+      current_location: location
+    )
+
+    patch scenario_progress_path(@scenario), params: {
+      scenario_progress: {
+        current_location_id: "",
+        clue_ids: [ "" ],
+        location_ids: [ "" ],
+        npc_ids: [ "" ]
+      }
+    }
+
+    assert_response :see_other
+    assert_nil progress.reload.current_location_id
+  end
+
+  test "別シナリオの場所を現在地に設定できない" do
+    other_user = User.create!(
+      name: "別ユーザー",
+      email: "other-current-location@example.com",
+      password: "password",
+      password_confirmation: "password"
+    )
+
+    other_scenario = other_user.scenarios.create!(
+      title: "別のシナリオ",
+      summary: "テスト用概要",
+      truth: "テスト用真相",
+      genre: "ミステリー",
+      world_setting: "現代日本",
+      tone: "シリアス",
+      player_count: 3,
+      play_time: 90,
+      generation_status: :completed
+    )
+
+    other_location = other_scenario.scenario_locations.create!(
+      name: "別シナリオの秘密の場所",
+      description: "別の場所",
+      position: 1,
+      visibility: :secret
+    )
+
+    patch scenario_progress_path(@scenario), params: {
+      scenario_progress: {
+        current_location_id: other_location.id,
+        clue_ids: [ "" ],
+        location_ids: [ "" ],
+        npc_ids: [ "" ]
+      }
+    }
+
+    assert_response :see_other
+
+    progress = @scenario.reload.scenario_progress
+
+    assert_nil progress&.current_location_id
+    assert_equal(
+      "進行状況を保存できませんでした。",
+      flash[:alert]
+    )
+  end
+
+  test "秘密の場所を公開済みにできる" do
+    secret_location = @scenario.scenario_locations.create!(
+      name: "秘密の地下室",
+      description: "隠された地下室",
+      position: @scenario.scenario_locations.maximum(:position).to_i + 1,
+      visibility: :secret
+    )
+
+    patch scenario_progress_path(@scenario), params: {
+      scenario_progress: {
+        revealed_location_ids: [ secret_location.id ]
+      }
+    }
+
+    assert_response :see_other
+
+    progress = @scenario.reload.scenario_progress
+
+    assert_includes(
+      progress.revealed_location_ids,
+      secret_location.id
+    )
+  end
+
+  test "公開した秘密の場所を非公開に戻せる" do
+    secret_location = @scenario.scenario_locations.create!(
+      name: "秘密の地下室",
+      description: "隠された地下室",
+      position: @scenario.scenario_locations.maximum(:position).to_i + 1,
+      visibility: :secret
+    )
+
+    progress = @scenario.create_scenario_progress!
+    progress.revealed_locations << secret_location
+
+    patch scenario_progress_path(@scenario), params: {
+      scenario_progress: {
+        revealed_location_ids: [ "" ]
+      }
+    }
+
+    assert_response :see_other
+    assert_empty progress.reload.revealed_location_ids
+  end
+
+  test "秘密の場所以外を公開管理に登録しない" do
+    public_location = @scenario.scenario_locations
+      .visibility_public
+      .first!
+
+    other_location = ScenarioLocation
+      .where.not(scenario_id: @scenario.id)
+      .first!
+
+    patch scenario_progress_path(@scenario), params: {
+      scenario_progress: {
+        revealed_location_ids: [
+          public_location.id,
+          other_location.id
+        ]
+      }
+    }
+
+    assert_response :see_other
+
+    progress = @scenario.reload.scenario_progress
+
+    assert_empty progress.revealed_location_ids
   end
 
   private

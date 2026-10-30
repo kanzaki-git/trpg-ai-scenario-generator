@@ -277,4 +277,284 @@ class PlayerSessionsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_equal original_updated_at, @progress.reload.updated_at
   end
+
+  test "正しいトークンで更新情報を取得できる" do
+    get player_session_status_url(
+      player_token: @progress.player_token
+    )
+
+    assert_response :success
+    assert_equal "application/json", response.media_type
+
+    json = response.parsed_body
+
+    assert_nil json["current_location"]
+    assert_equal "unset", json["location_status"]
+    assert_equal [], json["appeared_npcs"]
+  end
+
+  test "ログインしていなくても更新情報を取得できる" do
+    get player_session_status_url(
+      player_token: @progress.player_token
+    )
+
+    assert_response :success
+  end
+
+  test "不正なトークンでは更新情報を取得できない" do
+    get player_session_status_url(
+      player_token: "invalid-player-token"
+    )
+
+    assert_response :not_found
+  end
+
+  test "公開されている現在地をJSONで取得できる" do
+    location = @scenario.scenario_locations.create!(
+      name: "村の広場",
+      description: "村の中心にある広場",
+      position: 1,
+      visibility: :public
+    )
+
+    @progress.update!(current_location: location)
+
+    get player_session_status_url(
+      player_token: @progress.player_token
+    )
+
+    assert_response :success
+
+    json = response.parsed_body
+
+    assert_equal "public", json["location_status"]
+    assert_equal(
+      { "id" => location.id, "name" => location.name },
+      json["current_location"]
+    )
+  end
+
+  test "秘密の現在地をJSONに含めない" do
+    location = @scenario.scenario_locations.create!(
+      name: "秘密の地下室",
+      description: "事件の真相が隠された部屋",
+      position: 1,
+      visibility: :secret
+    )
+
+    @progress.update!(current_location: location)
+
+    get player_session_status_url(
+      player_token: @progress.player_token
+    )
+
+    assert_response :success
+
+    json = response.parsed_body
+
+    assert_equal "hidden", json["location_status"]
+    assert_nil json["current_location"]
+    assert_not_includes response.body, location.name
+    assert_not_includes response.body, location.description
+  end
+
+  test "登場済みNPCの名前だけをJSONで取得できる" do
+    appeared_npc = @scenario.scenario_npcs.create!(
+      name: "村の司祭",
+      description: "事件の秘密を知っている",
+      position: 1
+    )
+
+    hidden_npc = @scenario.scenario_npcs.create!(
+      name: "謎の黒幕",
+      description: "事件の犯人",
+      position: 2
+    )
+
+    @progress.appeared_npcs << appeared_npc
+
+    get player_session_status_url(
+      player_token: @progress.player_token
+    )
+
+    assert_response :success
+
+    json = response.parsed_body
+
+    assert_equal(
+      [ { "id" => appeared_npc.id, "name" => appeared_npc.name } ],
+      json["appeared_npcs"]
+    )
+
+    assert_not_includes response.body, hidden_npc.name
+    assert_not_includes response.body, appeared_npc.description
+    assert_not_includes response.body, hidden_npc.description
+    assert_not_includes response.body, @scenario.truth
+    assert_not_includes response.body, @scenario.summary
+  end
+
+  test "更新確認APIは進行状況を変更しない" do
+    original_updated_at = @progress.updated_at
+
+    assert_no_difference [
+      "ScenarioProgress.count",
+      "ScenarioProgressNpc.count",
+      "ScenarioProgressClue.count",
+      "ScenarioProgressLocation.count"
+    ] do
+      get player_session_status_url(
+        player_token: @progress.player_token
+      )
+    end
+
+    assert_response :success
+    assert_equal original_updated_at, @progress.reload.updated_at
+  end
+
+  test "更新情報を公開キャッシュに保存させない" do
+    get player_session_status_url(
+      player_token: @progress.player_token
+    )
+
+    assert_response :success
+    assert_includes response.headers["Cache-Control"], "no-store"
+  end
+
+  test "GMが公開した秘密の場所はプレイヤー画面に表示される" do
+    secret_location = @scenario.scenario_locations.create!(
+      name: "秘密の地下室",
+      description: "GMが公開した地下室",
+      position: @scenario.scenario_locations.maximum(:position).to_i + 1,
+      visibility: :secret,
+      map_row: 3,
+      map_column: 3
+    )
+
+    @progress.revealed_locations << secret_location
+    @progress.update!(current_location: secret_location)
+
+    get player_session_path(player_token: @progress.player_token)
+
+    assert_response :success
+    assert_select "h3", text: secret_location.name
+    assert_includes response.body, secret_location.name
+  end
+
+  test "未公開の秘密の場所はプレイヤー画面に表示されない" do
+    secret_location = @scenario.scenario_locations.create!(
+      name: "未発見の地下室",
+      description: "プレイヤーに秘密の情報",
+      position: @scenario.scenario_locations.maximum(:position).to_i + 1,
+      visibility: :secret,
+      map_row: 3,
+      map_column: 3
+    )
+
+    @progress.update!(current_location: secret_location)
+
+    get player_session_path(player_token: @progress.player_token)
+
+    assert_response :success
+    assert_select "h3", text: secret_location.name, count: 0
+    assert_no_match(/未発見の地下室/, response.body)
+    assert_no_match(/プレイヤーに秘密の情報/, response.body)
+  end
+
+  test "公開した秘密の場所はstatus APIに含まれる" do
+    secret_location = @scenario.scenario_locations.create!(
+      name: "公開された地下室",
+      description: "プレイヤーに公開する部屋",
+      position: @scenario.scenario_locations.maximum(:position).to_i + 1,
+      visibility: :secret,
+      map_row: 3,
+      map_column: 3
+    )
+
+    @progress.revealed_locations << secret_location
+
+    get player_session_status_path(
+      player_token: @progress.player_token
+    )
+
+    assert_response :success
+
+    json = response.parsed_body
+    location_ids = json.fetch("map_locations").pluck("id")
+
+    assert_includes location_ids, secret_location.id
+  end
+
+  test "未公開の秘密の場所はstatus APIに含まれない" do
+    secret_location = @scenario.scenario_locations.create!(
+      name: "絶対に未公開の地下室",
+      description: "まだ明かしてはいけない情報",
+      position: @scenario.scenario_locations.maximum(:position).to_i + 1,
+      visibility: :secret,
+      map_row: 3,
+      map_column: 3
+    )
+
+    get player_session_status_path(
+      player_token: @progress.player_token
+    )
+
+    assert_response :success
+
+    json = response.parsed_body
+    location_ids = json.fetch("map_locations").pluck("id")
+
+    assert_not_includes location_ids, secret_location.id
+    assert_not_includes response.body, secret_location.name
+    assert_not_includes response.body, secret_location.description
+  end
+
+  test "公開済みの場所同士でも秘密の経路はstatus APIに含まれない" do
+    first_location = @scenario.scenario_locations.create!(
+      name: "秘密の地下室",
+      description: "公開された地下室",
+      position: @scenario.scenario_locations.maximum(:position).to_i + 1,
+      visibility: :secret,
+      map_row: 3,
+      map_column: 2
+    )
+
+    second_location = @scenario.scenario_locations.create!(
+      name: "隠された通路",
+      description: "公開された通路",
+      position: @scenario.scenario_locations.maximum(:position).to_i + 1,
+      visibility: :secret,
+      map_row: 3,
+      map_column: 3
+    )
+
+    @progress.revealed_locations << first_location
+    @progress.revealed_locations << second_location
+
+    connection = @scenario.scenario_location_connections.create!(
+      source_location: first_location,
+      destination_location: second_location,
+      position: @scenario.scenario_location_connections.maximum(:position).to_i + 1,
+      visibility: :secret
+    )
+
+    get player_session_status_path(
+      player_token: @progress.player_token
+    )
+
+    assert_response :success
+
+    json = response.parsed_body
+
+    location_ids = json.fetch("map_locations").pluck("id")
+
+    assert_includes location_ids, first_location.id
+    assert_includes location_ids, second_location.id
+
+    connections = json.fetch("map_connections")
+
+    assert_not connections.any? { |item|
+      [ item["source_location_id"], item["destination_location_id"] ].sort ==
+        [ connection.source_location_id, connection.destination_location_id ].sort
+    }
+  end
 end

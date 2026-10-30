@@ -235,5 +235,8 @@ class ScenariosController < ApplicationController
     @presented_clue_ids = @scenario_progress.presented_clue_ids
     @visited_location_ids = @scenario_progress.visited_location_ids
     @appeared_npc_ids = @scenario_progress.appeared_npc_ids
+
+    @revealed_location_ids =
+      @scenario_progress.revealed_location_ids
   end
 end

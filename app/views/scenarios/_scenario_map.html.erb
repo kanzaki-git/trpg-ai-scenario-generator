@@ -62,7 +62,7 @@
     <% end %>
   </div>
 
-  <% if @map_locations.any? %>
+  <% if @map_locations.any? || local_assigns.fetch(:player_polling, false) %>
     <% highlighted_location_ids =
          local_assigns.fetch(:highlighted_location_ids, []) %>
 
@@ -71,6 +71,7 @@
 
     <div class="scenario-map-scroll">
       <div
+        data-player-session-polling-target="mapCanvas"
         class="
           scenario-map-canvas
           scenario-map--<%= @scenario.map_theme %>
@@ -79,6 +80,7 @@
       >
         <svg
           class="scenario-map-lines"
+          data-player-session-polling-target="mapLines"
           viewBox="0 0 100 100"
           preserveAspectRatio="none"
           aria-hidden="true"
@@ -114,7 +116,7 @@
             class="
               scenario-map-location
               <%= "is-active" if active %>
-              <%= "is-secret" if location.visibility_secret? %>
+              <%= "is-secret" if @map_view == "gm" && location.visibility_secret? %>
             "
             style="
               --map-x:
@@ -140,7 +142,7 @@
                 <%= location.position %>
               </span>
 
-              <% if location.visibility_secret? %>
+              <% if @map_view == "gm" && location.visibility_secret? %>
                 <span class="scenario-map-secret-label">
                   秘密
                 </span>
@@ -173,7 +175,16 @@
         </span>
       <% end %>
 
-      <% if highlighted_location_ids.any? %>
+      <% if local_assigns.fetch(:player_polling, false) %>
+        <span
+          class="d-inline-flex align-items-center gap-2"
+          data-player-session-polling-target="mapLegend"
+          <%= "hidden" if highlighted_location_ids.empty? %>
+        >
+          <span class="scenario-map-legend-current"></span>
+          現在地
+        </span>
+      <% elsif highlighted_location_ids.any? %>
         <span class="d-inline-flex align-items-center gap-2">
           <span class="scenario-map-legend-current"></span>
           <%= local_assigns.fetch(

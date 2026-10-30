@@ -19,6 +19,12 @@ class ScenarioProgress < ApplicationRecord
            through: :scenario_progress_locations,
            source: :scenario_location
 
+  has_many :scenario_progress_revealed_locations,
+          dependent: :destroy
+  has_many :revealed_locations,
+          through: :scenario_progress_revealed_locations,
+          source: :scenario_location
+
   has_many :scenario_progress_npcs,
            dependent: :destroy
   has_many :appeared_npcs,

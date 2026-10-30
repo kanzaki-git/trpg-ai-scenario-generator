@@ -2,6 +2,7 @@
   class="offcanvas offcanvas-end"
   tabindex="-1"
   id="session-progress-panel"
+  data-controller="session-progress-panel"
   aria-labelledby="session-progress-panel-label"
   data-bs-scroll="true"
   data-bs-backdrop="false"
@@ -29,9 +30,97 @@
   </div>
 
   <div class="offcanvas-body">
+    <div class="border rounded-3 p-3 mb-4">
+      <h3 class="h5 fw-bold mb-2">
+        プレイヤー専用画面
+      </h3>
+
+      <p class="small text-secondary">
+        プレイヤーにURLを共有すると、現在地・共通マップ・
+        登場済みNPCを確認できます。
+        情報は約5秒間隔で自動更新されます。
+      </p>
+
+      <% if @scenario_progress.persisted? %>
+        <div data-controller="clipboard">
+          <label
+            for="player-session-share-url"
+            class="form-label fw-bold"
+          >
+            共有URL
+          </label>
+
+          <input
+            type="text"
+            id="player-session-share-url"
+            class="form-control mb-2"
+            value="<%= player_session_url(player_token: @scenario_progress.player_token) %>"
+            data-clipboard-target="source"
+            readonly
+          >
+
+          <div class="d-grid gap-2">
+            <button
+              type="button"
+              class="btn btn-outline-primary"
+              data-action="click->clipboard#copy"
+            >
+              URLをコピー
+            </button>
+
+            <%= link_to(
+                  "プレイヤー画面を開く",
+                  player_session_path(player_token: @scenario_progress.player_token),
+                  class: "btn btn-outline-secondary",
+                  target: "_blank",
+                  rel: "noopener noreferrer"
+                ) %>
+          </div>
+
+          <p
+            class="small mt-2 mb-0 d-none"
+            data-clipboard-target="feedback"
+            role="status"
+          ></p>
+        </div>
+      <% else %>
+        <p class="small text-secondary mb-0">
+          進行状況を一度保存すると、
+          プレイヤー専用URLが表示されます。
+        </p>
+      <% end %>
+    </div>
+
     <%= form_with url: scenario_progress_path(@scenario),
                   method: :patch,
                   scope: :scenario_progress do %>
+
+      <div class="border rounded-3 p-3 mb-3">
+        <%= label_tag(
+              "scenario-progress-current-location",
+              "現在地",
+              class: "form-label fw-bold"
+            ) %>
+
+        <p class="small text-secondary mb-2">
+          プレイヤーが現在いる場所を選択してください。
+          保存するとプレイヤー専用画面にも自動反映されます。
+        </p>
+
+        <%= select_tag(
+              "scenario_progress[current_location_id]",
+              options_for_select(
+                [["未設定", ""]] +
+                  @progress_locations.map do |location|
+                    [location.name, location.id]
+                  end,
+                @scenario_progress.current_location_id
+              ),
+              id: "scenario-progress-current-location",
+              class: "form-select"
+            ) %>
+      </div>
+
       <%= hidden_field_tag(
             "scenario_progress[clue_ids][]",
             ""
@@ -44,6 +133,11 @@
 
       <%= hidden_field_tag(
             "scenario_progress[npc_ids][]",
+            ""
+          ) %>
+
+      <%= hidden_field_tag(
+            "scenario_progress[revealed_location_ids][]",
             ""
           ) %>
 
@@ -133,6 +227,66 @@
         <% else %>
           <p class="text-secondary px-3 pb-3 mb-0">
             場所は登録されていません。
+          </p>
+        <% end %>
+      </details>
+
+      <details class="border rounded-3 mb-3" open>
+        <summary
+          class="fw-bold px-3 py-3"
+          style="cursor: pointer;"
+        >
+          秘密の場所の公開管理
+          <span class="badge text-bg-secondary ms-1">
+            <%= @progress_locations.count(&:visibility_secret?) %>
+          </span>
+        </summary>
+
+        <% secret_locations =
+             @progress_locations.select(&:visibility_secret?) %>
+
+        <% if secret_locations.any? %>
+          <div class="border-top px-3 pt-3">
+            <p class="small text-secondary mb-2">
+              プレイヤーに公開する秘密の場所を選択してください。
+              公開した場所は共通マップに表示されます。
+            </p>
+
+            <p class="small text-secondary mb-3">
+              チェックを外すと再び非公開になります。
+              訪問済みの記録には影響しません。
+            </p>
+          </div>
+
+          <div class="list-group list-group-flush">
+            <% secret_locations.each do |location| %>
+              <label
+                class="list-group-item d-flex gap-3 py-3"
+                for="scenario-revealed-location-<%= location.id %>"
+              >
+                <%= check_box_tag(
+                      "scenario_progress[revealed_location_ids][]",
+                      location.id,
+                      @revealed_location_ids.include?(location.id),
+                      id: "scenario-revealed-location-#{location.id}",
+                      class: "form-check-input flex-shrink-0 mt-1"
+                    ) %>
+
+                <span class="text-break">
+                  <span class="fw-bold d-block mb-1">
+                    <%= location.name %>
+                  </span>
+
+                  <span class="small text-secondary">
+                    <%= location.description %>
+                  </span>
+                </span>
+              </label>
+            <% end %>
+          </div>
+        <% else %>
+          <p class="text-secondary px-3 pb-3 mb-0">
+            秘密の場所は登録されていません。
           </p>
         <% end %>
       </details>
