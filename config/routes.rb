@@ -5,6 +5,9 @@ Rails.application.routes.draw do
   get "privacy_policy", to: "privacy_policies#show", as: :privacy_policy
   get "shared_scenarios/:share_token", to: "public_scenarios#show", as: :shared_scenario
   get "player_sessions/:player_token", to: "player_sessions#show", as: :player_session
+  get "player_sessions/:player_token/status",
+    to: "player_sessions#status",
+    as: :player_session_status
 
   resources :users, only: %i[new create]
   resources :password_resets, only: %i[new create edit update]

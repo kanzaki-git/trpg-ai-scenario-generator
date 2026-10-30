@@ -1,7 +1,12 @@
 <% content_for :title, "#{@scenario.title} | セッション情報" %>
 <% content_for :robots, "noindex, nofollow" %>
 
-<main class="container py-4">
+<main
+  class="container py-4"
+  data-controller="player-session-polling"
+  data-player-session-polling-url-value="<%= player_session_status_path(player_token: @progress.player_token) %>"
+>
+
   <header class="mb-5">
     <h1 class="h2 fw-bold"><%= @scenario.title %></h1>
     <p class="text-secondary">
@@ -11,24 +16,29 @@
 
   <section class="mb-5">
     <h2 class="h3 fw-bold">現在地</h2>
-
-    <% if @current_location&.visibility_public? %>
-      <div class="card">
-        <div class="card-body">
-          <h3 class="h5 mb-0">
-            <%= @current_location.name %>
-          </h3>
+    <div
+      data-player-session-polling-target="location"
+      data-location-status="<%= @current_location.nil? ? 'unset' : (@current_location_visible ? 'public' : 'hidden') %>"
+      data-location-id="<%= @current_location.id if @current_location_visible %>"
+    >
+      <% if @current_location_visible %>
+        <div class="card">
+          <div class="card-body">
+            <h3 class="h5 mb-0">
+              <%= @current_location.name %>
+            </h3>
+          </div>
         </div>
-      </div>
-    <% elsif @current_location.present? %>
-      <div class="alert alert-secondary">
-        現在地の情報はまだ公開されていません。
-      </div>
-    <% else %>
-      <div class="alert alert-secondary">
-        現在地は未設定です。
-      </div>
-    <% end %>
+      <% elsif @current_location.present? %>
+        <div class="alert alert-secondary">
+          現在地の情報はまだ公開されていません。
+        </div>
+      <% else %>
+        <div class="alert alert-secondary">
+          現在地は未設定です。
+        </div>
+      <% end %>
+    </div>
   </section>
 
   <%= render "scenarios/scenario_map",
@@ -36,23 +46,30 @@
               .select { |location| location.id == @current_location&.id }
               .map(&:id),
             show_view_switcher: false,
+            interactive: true,
+            player_polling: true,
             highlight_label: "現在地" %>
 
   <section class="mb-5">
     <h2 class="h3 fw-bold">登場人物</h2>
 
-    <% if @appeared_npcs.any? %>
-      <ul class="list-group">
-        <% @appeared_npcs.each do |npc| %>
-          <li class="list-group-item">
-            <%= npc.name %>
-          </li>
-        <% end %>
-      </ul>
-    <% else %>
-      <div class="alert alert-secondary">
-        まだ登場した人物はいません。
-      </div>
-    <% end %>
+    <div
+      data-player-session-polling-target="npcs"
+      data-npc-ids="<%= @appeared_npcs.map(&:id).join(',') %>"
+    >
+      <% if @appeared_npcs.any? %>
+        <ul class="list-group">
+          <% @appeared_npcs.each do |npc| %>
+            <li class="list-group-item">
+              <%= npc.name %>
+            </li>
+          <% end %>
+        </ul>
+      <% else %>
+        <div class="alert alert-secondary">
+          まだ登場した人物はいません。
+        </div>
+      <% end %>
+    </div>
   </section>
 </main>

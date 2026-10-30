@@ -4,6 +4,7 @@ class ScenarioLocation < ApplicationRecord
   has_many :scenario_scene_locations, dependent: :destroy
   has_many :scenario_scenes, through: :scenario_scene_locations
   has_many :scenario_progress_locations, dependent: :destroy
+  has_many :scenario_progress_revealed_locations, dependent: :destroy
 
   has_many :outgoing_connections,
            class_name: "ScenarioLocationConnection",
